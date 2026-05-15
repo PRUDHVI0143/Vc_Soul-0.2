@@ -551,6 +551,9 @@ class SoulAssistant:
                         print("Calibrating for background noise...")
                         self.r.adjust_for_ambient_noise(src, duration=1)
                 except: pass
+            # ✅ FIX: Mark mic as ready AFTER calibration so the UI button works
+            self._mic_ready = True
+            print("✅ Microphone ready.")
             
             while not self._stop_event.is_set():
                 if not self._active:
@@ -603,7 +606,12 @@ app = SoulAssistant()
 # Expose functions to Javascript
 @eel.expose
 def manual_activate():
-    if not app._mic_ready: return
+    # ✅ FIX: Wait briefly for mic to become ready instead of silently returning
+    if not app._mic_ready:
+        for _ in range(20):  # wait up to 2 seconds
+            time.sleep(0.1)
+            if app._mic_ready:
+                break
     if app._active:
         app._deactivate()
     else:
@@ -611,17 +619,21 @@ def manual_activate():
 
 @eel.expose
 def quick_action(cmd):
+    # ✅ FIX: Always activate first, then handle — no silent failure
     if not app._active:
         app._activate()
-        time.sleep(0.5)
+        time.sleep(0.3)
     app.handle_command(cmd)
 
 @eel.expose
 def manual_command(cmd):
+    # ✅ FIX: Wake words activate; any other typed command auto-activates if idle
     if any(w in cmd.lower() for w in WAKE_WORDS):
         app._activate()
         return
-    if not app._active: return
+    if not app._active:
+        app._activate()  # Auto-activate when user types a command
+        time.sleep(0.3)
     app.handle_command(cmd)
 
 if __name__ == "__main__":
