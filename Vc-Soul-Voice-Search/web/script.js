@@ -97,8 +97,27 @@ function initClock() {
     setInterval(update, 1000);
 }
 
+function initWeather() {
+    async function fetchW() {
+        if (window.eel && window.eel.get_live_weather) {
+            try {
+                let res = await eel.get_live_weather()();
+                if (res) {
+                    document.getElementById("weather-loc").innerText = res.location;
+                    document.getElementById("weather-temp").innerText = res.temp;
+                    document.getElementById("weather-desc").innerText = res.desc;
+                    document.getElementById("weather-emoji").innerText = res.emoji;
+                }
+            } catch(e) { console.error("Weather error", e); }
+        }
+    }
+    fetchW();
+    setInterval(fetchW, 600000); // 10 mins
+}
+
 window.onload = () => {
     initClock();
+    initWeather();
     VANTA.NET({
         el: "#vanta-bg",
         mouseControls: true,

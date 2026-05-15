@@ -205,11 +205,108 @@ body {
     transform: scale(0.9);
 }
 
+/* WEATHER WIDGET (BOTTOM LEFT) */
+.weather-widget {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    width: 240px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 24px;
+    padding: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(138, 43, 226, 0.15);
+    z-index: 100;
+    transition: all 0.4s ease;
+}
+
+.weather-widget:hover {
+    border-color: rgba(138, 43, 226, 0.5);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 30px rgba(138, 43, 226, 0.3);
+    transform: translateY(-3px);
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 8px;
+}
+
+.weather-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-transform: uppercase;
+}
+
+.weather-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--purple);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--purple);
+    animation: pulse 2s infinite;
+}
+
+.weather-body {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.weather-emoji {
+    font-size: 38px;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    animation: floatEmoji 4s ease-in-out infinite;
+}
+
+.weather-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.weather-temp {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-white);
+    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    line-height: 1.1;
+}
+
+.weather-desc {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    margin-top: 2px;
+}
+
+.weather-loc {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-grey);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes floatEmoji {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
 /* BOTTOM CONTROLS */
 .bottom-bar {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    max-width: 550px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .suggestions {
