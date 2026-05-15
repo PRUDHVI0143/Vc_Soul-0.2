@@ -126,7 +126,7 @@ export default function SoulDashboard() {
 
             <div className="flex items-center gap-5">
               <div className="text-right">
-                <p className="text-cyan-300 font-mono text-lg">{currentTime}</p>
+                <p className="text-purple-400 font-mono text-xl font-bold drop-shadow-[0_0_12px_rgba(138,43,226,0.5)]">{currentTime}</p>
                 <p className="text-sm text-gray-400">{currentDate}</p>
               </div>
 

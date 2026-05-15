@@ -119,6 +119,24 @@ class SoulAIBrain:
                     print("DEBUG: Gemini blocked response")
             except Exception as e:
                 print(f"DEBUG: Online AI unavailable: {e}")
+                # Smart Online Fallback: Wikipedia Knowledge Search
+                try:
+                    search_term = query
+                    for w in ["who is", "what is", "where is", "tell me about", "why is", "how to", "explain"]:
+                        search_term = search_term.replace(w, "")
+                    search_term = search_term.strip()
+                    if search_term:
+                        url = f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&generator=search&gsrsearch={urllib.parse.quote(search_term)}&gsrlimit=1"
+                        res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=4).json()
+                        pages = res.get('query', {}).get('pages', {})
+                        if pages:
+                            extract = list(pages.values())[0].get('extract', '')
+                            if extract:
+                                sentences = [s.strip() for s in extract.split('. ') if s.strip()]
+                                summary = '. '.join(sentences[:2]) + '.'
+                                return summary, "Online Knowledge Base"
+                except Exception as wiki_e:
+                    print(f"DEBUG: Wikipedia fallback failed: {wiki_e}")
         
         # Fallback if offline or API error
         if not self.offline_ready:
