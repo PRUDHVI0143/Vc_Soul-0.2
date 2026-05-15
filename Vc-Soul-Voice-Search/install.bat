@@ -1,5 +1,5 @@
 @echo off
-echo Installing Voice Search dependencies...
-pip install SpeechRecognition pyttsx3 pyaudio
-echo ✅ Ready! Double-click ultimate_voice_search.py
+echo Installing Vc Soul dependencies...
+pip install SpeechRecognition pyttsx3 pyaudio eel requests google-generativeai
+echo ✅ Ready! Run: python ultimate_voice_search.py
 pause

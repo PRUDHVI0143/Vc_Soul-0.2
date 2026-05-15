@@ -1,16 +1,103 @@
-# React + Vite
+# 🌌 Vc Soul — S.O.U.L. Voice Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**S.O.U.L.** (System of Universal Listening) is a voice-activated AI assistant with a premium web HUD interface built with React + Vite and a Python/Eel backend.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Features
 
-## React Compiler
+- 🎤 **Wake-word activation** — Say *"Hello Bro"* to wake up
+- 🧠 **Dual AI** — Online (Gemini 2.5 Flash) + Offline (Phi-3) fallback
+- 🌐 **Smart web navigation** — Opens Netflix, YouTube, GitHub, and 30+ sites
+- 🖥️ **Windows app launcher** — Calc, Notepad, VS Code, Discord, etc.
+- 🗣️ **Text-to-speech** responses via pyttsx3
+- 💬 **Conversational** — Jokes, facts, time, date, identity responses
+- 🎨 **Premium HUD UI** — Cyberpunk aesthetic with animated orb
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📂 Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+Vc_Soul-0.2/
+├── src/                        # React frontend (Vite)
+│   ├── App.jsx                 # Main dashboard UI
+│   └── index.css
+├── public/
+│   └── expose.js               # JS ↔ Python bridge
+├── Vc-Soul-Voice-Search/       # Python backend (Eel)
+│   ├── ultimate_voice_search.py  # Main assistant logic
+│   ├── web/                    # Eel HTML interface
+│   │   ├── index.html
+│   │   ├── script.js
+│   │   └── style.css
+│   ├── install.bat             # Windows dependency installer
+│   ├── install.sh              # Linux/Mac installer
+│   └── requirements_ai.txt     # Python dependencies
+├── index.html                  # Vite entry
+├── package.json
+└── vite.config.js
+```
+
+---
+
+## ⚙️ Setup & Run
+
+### Python Backend (Eel UI)
+
+```bash
+cd Vc-Soul-Voice-Search
+pip install -r requirements_ai.txt
+python ultimate_voice_search.py
+```
+
+### React Frontend (Dev)
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## 🗣️ Voice Commands
+
+| Say | Action |
+|-----|--------|
+| `Hello Bro` | Wake up S.O.U.L. |
+| `Open Netflix` | Opens Netflix |
+| `Search python tutorial` | Google search |
+| `YouTube lo-fi music` | YouTube search |
+| `What is black holes` | AI answer (Gemini) |
+| `Tell me a joke` | Random joke |
+| `What time is it` | Current time |
+| `Goodbye` | Sleep mode |
+
+---
+
+## 🔑 API Key
+
+Add your Gemini API key in `ultimate_voice_search.py`:
+
+```python
+self.gemini_key = "YOUR_GEMINI_API_KEY_HERE"
+```
+
+Get a free key at: https://aistudio.google.com/app/apikey
+
+---
+
+## 📦 Python Requirements
+
+```
+SpeechRecognition
+pyttsx3
+pyaudio
+eel
+requests
+google-generativeai
+```
+
+---
+
+*Built with ❤️ by PRUDHVI0143*
