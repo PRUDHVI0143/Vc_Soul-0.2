@@ -205,16 +205,16 @@ body {
     transform: scale(0.9);
 }
 
-/* WEATHER WIDGET (BOTTOM LEFT) */
+/* WEATHER WIDGET (MIDDLE LEFT) */
 .weather-widget {
     position: absolute;
-    bottom: 140px;
-    left: 35px;
-    width: 240px;
+    bottom: 220px;
+    left: 25px;
+    width: 185px;
     background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
     border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 24px;
-    padding: 20px;
+    border-radius: 18px;
+    padding: 14px;
     backdrop-filter: blur(20px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(138, 43, 226, 0.15);
     z-index: 100;
@@ -231,22 +231,22 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 8px;
+    padding-bottom: 6px;
 }
 
 .weather-title {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     color: var(--cyan);
     text-transform: uppercase;
 }
 
 .weather-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background-color: var(--purple);
     border-radius: 50%;
     box-shadow: 0 0 10px var(--purple);
@@ -256,12 +256,12 @@ body {
 .weather-body {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .weather-emoji {
-    font-size: 38px;
-    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    font-size: 30px;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
     animation: floatEmoji 4s ease-in-out infinite;
 }
 
@@ -271,27 +271,27 @@ body {
 }
 
 .weather-temp {
-    font-size: 26px;
+    font-size: 20px;
     font-weight: 900;
     color: var(--text-white);
-    text-shadow: 0 0 15px rgba(255,255,255,0.4);
+    text-shadow: 0 0 12px rgba(255,255,255,0.4);
     line-height: 1.1;
 }
 
 .weather-desc {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--cyan);
     margin-top: 2px;
 }
 
 .weather-loc {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--text-grey);
-    margin-top: 4px;
+    margin-top: 3px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 @keyframes floatEmoji {
