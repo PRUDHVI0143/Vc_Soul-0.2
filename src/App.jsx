@@ -55,25 +55,60 @@ export default function SoulDashboard() {
         } catch (e) { console.error("Eel weather failed", e); }
       } else {
         try {
-          let url = lat && lon ? `https://wttr.in/~${lat},${lon}?format=j1` : 'https://wttr.in/?format=j1';
-          const res = await fetch(url).then(r => r.json());
-          const cur = res.current_condition[0];
-          const loc = res.nearest_area[0];
-          const desc = cur.weatherDesc[0].value;
+          const uLat = lat || 31.3256;
+          const uLon = lon || 75.5792;
+          const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${uLat}&longitude=${uLon}&current=temperature_2m,weather_code`;
+          const omData = await fetch(omUrl).then(r => r.json());
+          const cur = omData.current;
+          const tempC = Math.round(cur.temperature_2m);
+          const code = cur.weather_code;
+          
+          const wmoMap = {
+            0: "Clear", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
+            45: "Fog", 48: "Rime Fog", 51: "Light Drizzle", 53: "Drizzle", 55: "Heavy Drizzle",
+            61: "Light Rain", 63: "Rain", 65: "Heavy Rain", 71: "Light Snow", 73: "Snow",
+            80: "Rain Showers", 81: "Heavy Showers", 95: "Thunderstorm", 96: "Severe Storm"
+          };
+          const desc = wmoMap[code] || "Clear";
+          
           const hour = new Date().getHours();
           const isNight = hour < 6 || hour >= 19;
           let emoji = isNight ? "🌙" : "☀️";
-          if (desc.toLowerCase().includes("cloud")) emoji = "☁️";
-          else if (desc.toLowerCase().includes("rain")) emoji = "🌧️";
+          if (desc.toLowerCase().includes("cloud") || desc.toLowerCase().includes("overcast")) emoji = "☁️";
+          else if (desc.toLowerCase().includes("rain") || desc.toLowerCase().includes("drizzle") || desc.toLowerCase().includes("shower")) emoji = "🌧️";
+          else if (desc.toLowerCase().includes("thunder") || desc.toLowerCase().includes("storm")) emoji = "⛈️";
+          else if (desc.toLowerCase().includes("snow") || desc.toLowerCase().includes("ice")) emoji = "❄️";
+          else if (desc.toLowerCase().includes("fog") || desc.toLowerCase().includes("mist")) emoji = "🌫️";
           else if (desc.toLowerCase().includes("clear") || desc.toLowerCase().includes("sun")) emoji = isNight ? "🌙" : "☀️";
+          
           setWeatherData({
-            location: `${loc.areaName[0].value}, ${loc.region[0].value}`,
-            temp: `${cur.temp_C}°C`,
+            location: "Jalandhar, Punjab",
+            temp: `${tempC}°C`,
             desc: desc,
             emoji: emoji
           });
-        } catch (e) {
-          setWeatherData({ location: 'Punjab, IN', temp: '28°C', desc: 'Cloudy', emoji: '☁️' });
+        } catch (omErr) {
+          try {
+            let url = lat && lon ? `https://wttr.in/~${lat},${lon}?format=j1` : 'https://wttr.in/?format=j1';
+            const res = await fetch(url).then(r => r.json());
+            const cur = res.current_condition[0];
+            const loc = res.nearest_area[0];
+            const desc = cur.weatherDesc[0].value;
+            const hour = new Date().getHours();
+            const isNight = hour < 6 || hour >= 19;
+            let emoji = isNight ? "🌙" : "☀️";
+            if (desc.toLowerCase().includes("cloud")) emoji = "☁️";
+            else if (desc.toLowerCase().includes("rain")) emoji = "🌧️";
+            else if (desc.toLowerCase().includes("clear") || desc.toLowerCase().includes("sun")) emoji = isNight ? "🌙" : "☀️";
+            setWeatherData({
+              location: `${loc.areaName[0].value}, ${loc.region[0].value}`,
+              temp: `${cur.temp_C}°C`,
+              desc: desc,
+              emoji: emoji
+            });
+          } catch (e) {
+            setWeatherData({ location: 'Jalandhar, Punjab', temp: '24°C', desc: 'Clear', emoji: '🌙' });
+          }
         }
       }
     };

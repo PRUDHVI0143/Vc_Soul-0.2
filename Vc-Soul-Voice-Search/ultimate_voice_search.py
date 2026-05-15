@@ -688,40 +688,83 @@ def manual_command(cmd):
 @eel.expose
 def get_live_weather(lat=None, lon=None):
     try:
+        area, region = "Jalandhar", "Punjab"
         if not lat or not lon:
             try:
                 ip_data = requests.get('http://ip-api.com/json', timeout=3).json()
                 if ip_data.get('status') == 'success':
                     lat = ip_data.get('lat')
                     lon = ip_data.get('lon')
+                    area = ip_data.get('city', 'Jalandhar')
+                    region = ip_data.get('regionName', 'Punjab')
             except Exception as ip_e:
                 print("IP Geolocation fallback error:", ip_e)
+                lat, lon = 31.3256, 75.5792
+        else:
+            try:
+                geo_url = f"https://api.bigdatacloud.net/data/reverse-geocode-client?latitude={lat}&longitude={lon}&localityLanguage=en"
+                geo_data = requests.get(geo_url, timeout=3).json()
+                area = geo_data.get('city') or geo_data.get('locality') or "Jalandhar"
+                region = geo_data.get('principalSubdivision') or "Punjab"
+            except Exception:
+                pass
         
-        url = f"https://wttr.in/~{lat},{lon}?format=j1" if lat and lon else "https://wttr.in/?format=j1"
-        res = requests.get(url, timeout=5).json()
-        cur = res['current_condition'][0]
-        loc = res['nearest_area'][0]
-        area = loc['areaName'][0]['value']
-        region = loc['region'][0]['value']
-        temp = cur['temp_C']
-        desc = cur['weatherDesc'][0]['value']
-        
-        # Determine Day or Night
-        hour = time.localtime().tm_hour
-        is_night = hour < 6 or hour >= 19
-        
-        emoji = "🌙" if is_night else "☀️"
-        d_lower = desc.lower()
-        if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
-        elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
-        elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
-        elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
-        elif "fog" in d_lower or "mist" in d_lower: emoji = "🌫️"
-        elif "clear" in d_lower or "sun" in d_lower: emoji = "🌙" if is_night else "☀️"
-        return {"location": f"{area}, {region}", "temp": f"{temp}°C", "desc": desc, "emoji": emoji}
+        # Primary High-Precision Engine: Open-Meteo
+        try:
+            om_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code"
+            om_data = requests.get(om_url, timeout=4).json()
+            cur = om_data['current']
+            temp_c = round(cur['temperature_2m'])
+            code = cur['weather_code']
+            
+            wmo_map = {
+                0: "Clear", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
+                45: "Fog", 48: "Rime Fog", 51: "Light Drizzle", 53: "Drizzle", 55: "Heavy Drizzle",
+                61: "Light Rain", 63: "Rain", 65: "Heavy Rain", 71: "Light Snow", 73: "Snow",
+                80: "Rain Showers", 81: "Heavy Showers", 95: "Thunderstorm", 96: "Severe Storm"
+            }
+            desc = wmo_map.get(code, "Clear")
+            
+            hour = time.localtime().tm_hour
+            is_night = hour < 6 or hour >= 19
+            
+            emoji = "🌙" if is_night else "☀️"
+            d_lower = desc.lower()
+            if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
+            elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
+            elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
+            elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
+            elif "fog" in d_lower or "mist" in d_lower: emoji = "🌫️"
+            elif "clear" in d_lower or "sun" in d_lower: emoji = "🌙" if is_night else "☀️"
+            
+            return {"location": f"{area}, {region}", "temp": f"{temp_c}°C", "desc": desc, "emoji": emoji}
+        except Exception as om_e:
+            print("Open-Meteo fallback to wttr.in due to:", om_e)
+            url = f"https://wttr.in/~{lat},{lon}?format=j1" if lat and lon else "https://wttr.in/?format=j1"
+            res = requests.get(url, timeout=5).json()
+            cur = res['current_condition'][0]
+            loc = res['nearest_area'][0]
+            area = loc['areaName'][0]['value']
+            region = loc['region'][0]['value']
+            temp = cur['temp_C']
+            desc = cur['weatherDesc'][0]['value']
+            
+            hour = time.localtime().tm_hour
+            is_night = hour < 6 or hour >= 19
+            
+            emoji = "🌙" if is_night else "☀️"
+            d_lower = desc.lower()
+            if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
+            elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
+            elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
+            elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
+            elif "fog" in d_lower or "mist" in d_lower: emoji = "🌫️"
+            elif "clear" in d_lower or "sun" in d_lower: emoji = "🌙" if is_night else "☀️"
+            return {"location": f"{area}, {region}", "temp": f"{temp}°C", "desc": desc, "emoji": emoji}
+            
     except Exception as e:
         print("Live weather error:", e)
-        return {"location": "Punjab, IN", "temp": "28°C", "desc": "Cloudy", "emoji": "☁️"}
+        return {"location": "Jalandhar, Punjab", "temp": "24°C", "desc": "Clear", "emoji": "🌙"}
 
 if __name__ == "__main__":
     app.run()
