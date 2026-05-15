@@ -152,3 +152,55 @@ window.onload = () => {
     });
 };
 
+// Settings Modal & Control Functions
+function toggleSettingsModal() {
+    const modal = document.getElementById("settings-modal");
+    if (modal) {
+        modal.style.display = modal.style.display === "none" ? "flex" : "none";
+    }
+}
+
+function updateTheme(theme) {
+    let colorMap = {
+        violet: 0x8a2be2,
+        cyan: 0x00e5ff,
+        emerald: 0x10b981,
+        crimson: 0xf43f5e
+    };
+    if (window.VANTA && window.VANTA.current) {
+        window.VANTA.current.setOptions({
+            color: colorMap[theme] || 0x8a2be2
+        });
+    }
+    if (theme === 'cyan') {
+        document.documentElement.style.setProperty('--purple', '#00e5ff');
+    } else if (theme === 'emerald') {
+        document.documentElement.style.setProperty('--purple', '#10b981');
+    } else if (theme === 'crimson') {
+        document.documentElement.style.setProperty('--purple', '#f43f5e');
+    } else {
+        document.documentElement.style.setProperty('--purple', '#8a2be2');
+    }
+}
+
+function toggleWakeWord() {
+    const statusEl = document.getElementById("wake-word-status");
+    if (statusEl) {
+        if (statusEl.innerText === "ACTIVE") {
+            statusEl.innerText = "MUTED";
+            statusEl.style.color = "#ef4444";
+            statusEl.parentElement.style.background = "rgba(239, 68, 68, 0.2)";
+            statusEl.parentElement.style.borderColor = "rgba(239, 68, 68, 0.4)";
+        } else {
+            statusEl.innerText = "ACTIVE";
+            statusEl.style.color = "#22c55e";
+            statusEl.parentElement.style.background = "rgba(34, 197, 94, 0.2)";
+            statusEl.parentElement.style.borderColor = "rgba(34, 197, 94, 0.4)";
+        }
+    }
+}
+
+function updateSetting(key, val) {
+    console.log(`Setting updated: ${key} = ${val}`);
+}
+

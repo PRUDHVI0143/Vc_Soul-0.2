@@ -15,9 +15,12 @@
     <div class="app-container">
         <!-- Top Status Bar -->
         <header class="top-bar">
-            <div class="status-indicator">
-                <span class="dot" id="status-dot"></span>
-                <span id="status-text">Waiting for you to say 'Hello Bro'...</span>
+            <div class="top-left-group">
+                <button class="btn-settings" onclick="toggleSettingsModal()" title="System Settings">⚙️</button>
+                <div class="status-indicator">
+                    <span class="dot" id="status-dot"></span>
+                    <span id="status-text">Waiting for you to say 'Hello Bro'...</span>
+                </div>
             </div>
             <div class="time-container">
                 <div id="live-time">--:--:--</div>
@@ -69,6 +72,47 @@
                 <div id="weather-temp" class="weather-temp">--°C</div>
                 <div id="weather-desc" class="weather-desc">Loading...</div>
                 <div id="weather-loc" class="weather-loc">Detecting...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal (Glassmorphic Popup) -->
+    <div id="settings-modal" class="settings-modal" style="display: none;">
+        <div class="settings-modal-content">
+            <div class="settings-header">
+                <h2>⚙️ SYSTEM SETTINGS</h2>
+                <button class="btn-close-settings" onclick="toggleSettingsModal()">×</button>
+            </div>
+            <div class="settings-body">
+                <div class="setting-item">
+                    <label>AI Intelligence Mode</label>
+                    <select id="setting-ai-mode" onchange="updateSetting('ai_mode', this.value)">
+                        <option value="hybrid">Hybrid (Online + Wikipedia Fallback)</option>
+                        <option value="offline">Offline Local Phi-3 Only</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>HUD Color Palette</label>
+                    <select id="setting-theme" onchange="updateTheme(this.value)">
+                        <option value="violet">Neon Violet (Default)</option>
+                        <option value="cyan">Cyber Cyan</option>
+                        <option value="emerald">Emerald AI</option>
+                        <option value="crimson">Crimson Core</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Wake Word Listening</label>
+                    <div class="toggle-switch" onclick="toggleWakeWord()">
+                        <span id="wake-word-status" class="toggle-label status-active">ACTIVE</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>System Logs</label>
+                    <button class="btn-log" onclick="quickAction('Logs')">📂 Open soul.log</button>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <p>S.O.U.L. v0.2 — System of Universal Listening</p>
             </div>
         </div>
     </div>
