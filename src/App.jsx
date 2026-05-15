@@ -47,15 +47,16 @@ export default function SoulDashboard() {
   }, []);
 
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchWeather = async (lat = null, lon = null) => {
       if (window.eel && window.eel.get_live_weather) {
         try {
-          const res = await window.eel.get_live_weather()();
+          const res = await window.eel.get_live_weather(lat, lon)();
           if (res) setWeatherData(res);
         } catch (e) { console.error("Eel weather failed", e); }
       } else {
         try {
-          const res = await fetch('https://wttr.in/?format=j1').then(r => r.json());
+          let url = lat && lon ? `https://wttr.in/~${lat},${lon}?format=j1` : 'https://wttr.in/?format=j1';
+          const res = await fetch(url).then(r => r.json());
           const cur = res.current_condition[0];
           const loc = res.nearest_area[0];
           const desc = cur.weatherDesc[0].value;
@@ -73,8 +74,26 @@ export default function SoulDashboard() {
         }
       }
     };
-    fetchWeather();
-    const wTimer = setInterval(fetchWeather, 600000);
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        (err) => fetchWeather(null, null)
+      );
+    } else {
+      fetchWeather(null, null);
+    }
+
+    const wTimer = setInterval(() => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+          (err) => fetchWeather(null, null)
+        );
+      } else {
+        fetchWeather(null, null);
+      }
+    }, 600000);
     return () => clearInterval(wTimer);
   }, []);
 

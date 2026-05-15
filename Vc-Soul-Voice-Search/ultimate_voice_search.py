@@ -686,9 +686,20 @@ def manual_command(cmd):
     app.handle_command(cmd)
 
 @eel.expose
-def get_live_weather():
+def get_live_weather(lat=None, lon=None):
     try:
-        res = requests.get('https://wttr.in/?format=j1', timeout=5).json()
+        # If GPS coordinates not provided by browser, use high-accuracy IP geolocation
+        if not lat or not lon:
+            try:
+                ip_data = requests.get('http://ip-api.com/json', timeout=3).json()
+                if ip_data.get('status') == 'success':
+                    lat = ip_data.get('lat')
+                    lon = ip_data.get('lon')
+            except Exception as ip_e:
+                print("IP Geolocation fallback error:", ip_e)
+        
+        url = f"https://wttr.in/~{lat},{lon}?format=j1" if lat and lon else "https://wttr.in/?format=j1"
+        res = requests.get(url, timeout=5).json()
         cur = res['current_condition'][0]
         loc = res['nearest_area'][0]
         area = loc['areaName'][0]['value']

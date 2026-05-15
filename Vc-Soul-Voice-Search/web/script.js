@@ -98,10 +98,10 @@ function initClock() {
 }
 
 function initWeather() {
-    async function fetchW() {
+    async function fetchW(lat = null, lon = null) {
         if (window.eel && window.eel.get_live_weather) {
             try {
-                let res = await eel.get_live_weather()();
+                let res = await eel.get_live_weather(lat, lon)();
                 if (res) {
                     document.getElementById("weather-loc").innerText = res.location;
                     document.getElementById("weather-temp").innerText = res.temp;
@@ -111,8 +111,25 @@ function initWeather() {
             } catch(e) { console.error("Weather error", e); }
         }
     }
-    fetchW();
-    setInterval(fetchW, 600000); // 10 mins
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => fetchW(pos.coords.latitude, pos.coords.longitude),
+            (err) => fetchW(null, null)
+        );
+    } else {
+        fetchW(null, null);
+    }
+    setInterval(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => fetchW(pos.coords.latitude, pos.coords.longitude),
+                (err) => fetchW(null, null)
+            );
+        } else {
+            fetchW(null, null);
+        }
+    }, 600000); // 10 mins
 }
 
 window.onload = () => {
