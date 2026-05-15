@@ -7,6 +7,7 @@ export default function SoulDashboard() {
   const [mainText, setMainText] = useState('How can I help you today?');
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
   const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+  const [weatherData, setWeatherData] = useState({ location: 'Detecting...', temp: '--°C', desc: 'Loading...', emoji: '🌤️' });
 
   const updateState = (state, status, color, main) => {
     if (state) setUiState(state);
@@ -45,6 +46,38 @@ export default function SoulDashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const fetchWeather = async () => {
+      if (window.eel && window.eel.get_live_weather) {
+        try {
+          const res = await window.eel.get_live_weather()();
+          if (res) setWeatherData(res);
+        } catch (e) { console.error("Eel weather failed", e); }
+      } else {
+        try {
+          const res = await fetch('https://wttr.in/?format=j1').then(r => r.json());
+          const cur = res.current_condition[0];
+          const loc = res.nearest_area[0];
+          const desc = cur.weatherDesc[0].value;
+          let emoji = "☀️";
+          if (desc.toLowerCase().includes("cloud")) emoji = "☁️";
+          else if (desc.toLowerCase().includes("rain")) emoji = "🌧️";
+          setWeatherData({
+            location: `${loc.areaName[0].value}, ${loc.region[0].value}`,
+            temp: `${cur.temp_C}°C`,
+            desc: desc,
+            emoji: emoji
+          });
+        } catch (e) {
+          setWeatherData({ location: 'Punjab, IN', temp: '28°C', desc: 'Cloudy', emoji: '☁️' });
+        }
+      }
+    };
+    fetchWeather();
+    const wTimer = setInterval(fetchWeather, 600000);
+    return () => clearInterval(wTimer);
+  }, []);
+
   const handleMicClick = () => {
     if (window.eel && window.eel.manual_activate) {
       window.eel.manual_activate();
@@ -75,17 +108,17 @@ export default function SoulDashboard() {
       <div className="relative z-10 flex h-screen">
 
         {/* Sidebar */}
-        <aside className="w-72 border-r border-cyan-500/20 bg-white/5 backdrop-blur-xl p-6 flex flex-col justify-between">
+        <aside className="w-72 border-r border-cyan-500/20 bg-gradient-to-b from-white/[0.07] to-white/[0.02] backdrop-blur-2xl p-6 flex flex-col justify-between shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           <div>
-            <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-12 rounded-full bg-cyan-400 blur-sm animate-pulse" />
+            <div className="flex items-center gap-3 mb-10 group cursor-pointer">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-400 to-purple-500 blur-[2px] group-hover:blur-md transition-all animate-pulse shadow-[0_0_20px_rgba(0,255,255,0.6)]" />
               <div>
-                <h1 className="text-3xl font-bold tracking-widest">S.O.U.L</h1>
-                <p className="text-cyan-300 text-sm">AI Assistant</p>
+                <h1 className="text-3xl font-black tracking-widest bg-gradient-to-r from-cyan-300 via-purple-300 to-white bg-clip-text text-transparent">S.O.U.L</h1>
+                <p className="text-cyan-400 font-medium text-xs tracking-wider uppercase">AI Assistant</p>
               </div>
             </div>
 
-            <nav className="space-y-4">
+            <nav className="space-y-3">
               {[
                 'Home',
                 'Commands',
@@ -97,19 +130,20 @@ export default function SoulDashboard() {
               ].map((item) => (
                 <button
                   key={item}
-                  className="w-full text-left px-4 py-3 rounded-2xl bg-white/5 hover:bg-cyan-500/20 transition-all border border-transparent hover:border-cyan-400/40"
+                  className="w-full text-left px-5 py-3.5 rounded-2xl bg-white/[0.03] hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-purple-500/20 transition-all duration-300 border border-white/5 hover:border-cyan-400/40 hover:scale-[1.02] active:scale-[0.98] font-semibold tracking-wide flex items-center justify-between group"
                 >
-                  {item}
+                  <span>{item}</span>
+                  <span className="text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                 </button>
               ))}
             </nav>
           </div>
 
-          <div className="bg-white/5 rounded-3xl p-5 border border-cyan-500/20">
-            <p className="text-sm text-cyan-300 mb-2">AI MODE</p>
+          <div className="bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-transparent rounded-3xl p-5 border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_25px_rgba(138,43,226,0.15)] hover:border-purple-500/40 transition-all">
+            <p className="text-xs text-cyan-300 font-bold mb-2 tracking-widest uppercase">AI MODE</p>
             <div className="flex items-center justify-between">
-              <span className="text-xl font-semibold">Vc Soul</span>
-              <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-xl font-extrabold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Vc Soul</span>
+              <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.8)]" />
             </div>
           </div>
         </aside>
@@ -184,30 +218,30 @@ export default function SoulDashboard() {
               </div>
 
               {/* Input */}
-              <div className="w-full max-w-5xl bg-white/5 border border-cyan-500/20 rounded-[2rem] p-6 backdrop-blur-xl">
-                <form onSubmit={handleCommandSubmit} className="flex items-center gap-5">
-                  <button type="button" onClick={handleMicClick} className={`w-20 h-20 rounded-full border flex items-center justify-center text-3xl transition-all ${isListening ? 'bg-red-500/20 border-red-400/40 text-red-400 hover:scale-105' : 'bg-cyan-500/20 border-cyan-400/40 hover:scale-105'}`}>
+              <div className="w-full max-w-5xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-cyan-500/30 rounded-[2.5rem] p-8 backdrop-blur-2xl shadow-[0_10px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(138,43,226,0.15)] hover:border-purple-500/40 transition-all duration-500">
+                <form onSubmit={handleCommandSubmit} className="flex items-center gap-6">
+                  <button type="button" onClick={handleMicClick} className={`w-20 h-20 rounded-full border flex items-center justify-center text-3xl transition-all duration-300 shadow-[0_0_20px_rgba(0,255,255,0.2)] ${isListening ? 'bg-red-500/20 border-red-400/60 text-red-400 hover:scale-110 shadow-[0_0_30px_rgba(239,68,68,0.4)] animate-pulse' : 'bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 border-cyan-400/40 hover:scale-110 hover:border-purple-400/60'}`}>
                     🎤
                   </button>
 
-                  <div className="flex-1">
+                  <div className="flex-1 bg-black/40 border border-white/10 rounded-3xl px-8 py-4 focus-within:border-cyan-400/50 focus-within:shadow-[0_0_25px_rgba(0,255,255,0.15)] transition-all">
                     <input
                       name="command"
                       placeholder="Type a command or ask anything..."
-                      className="w-full bg-transparent outline-none text-2xl placeholder:text-gray-500"
+                      className="w-full bg-transparent outline-none text-2xl font-medium placeholder:text-gray-500 text-white"
                       autoComplete="off"
                     />
-                    <div className="mt-4">
+                    <div className="mt-2">
                       {isListening && <Wave />}
                     </div>
                   </div>
 
-                  <button type="submit" className="w-20 h-20 rounded-full bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-3xl hover:scale-105 transition-all">
+                  <button type="submit" className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600/30 to-purple-600/30 border border-blue-400/50 flex items-center justify-center text-3xl hover:scale-110 active:scale-95 transition-all duration-300 shadow-[0_0_25px_rgba(59,130,246,0.3)] hover:border-purple-400/70">
                     ➤
                   </button>
                 </form>
 
-                <div className="grid grid-cols-4 gap-4 mt-8">
+                <div className="grid grid-cols-4 gap-5 mt-8">
                   {[
                     'Build Box',
                     'Suggestion of plan',
@@ -217,7 +251,7 @@ export default function SoulDashboard() {
                     <button
                       key={item}
                       onClick={() => handleQuickAction(item)}
-                      className="py-4 rounded-2xl bg-black/30 border border-cyan-500/20 hover:border-cyan-400/40 hover:bg-cyan-500/10 transition-all"
+                      className="py-4 px-6 rounded-2xl bg-white/[0.03] border border-cyan-500/20 hover:border-cyan-400/60 hover:bg-gradient-to-r hover:from-cyan-500/15 hover:to-purple-500/15 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] font-semibold tracking-wide text-center shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
                     >
                       {item}
                     </button>
@@ -255,14 +289,14 @@ export default function SoulDashboard() {
                 </div>
               </Widget>
 
-              <Widget title="WEATHER">
+              <Widget title="LIVE WEATHER">
                 <div>
-                  <p className="text-gray-400">Punjab, IN</p>
-                  <div className="flex items-center gap-4 mt-4">
-                    <div className="text-6xl">☁️</div>
+                  <p className="text-purple-300 font-bold tracking-wider uppercase text-sm">{weatherData.location}</p>
+                  <div className="flex items-center gap-6 mt-4 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-transparent p-5 rounded-3xl border border-purple-500/20 shadow-[0_0_30px_rgba(138,43,226,0.15)] group hover:border-purple-500/40 transition-all">
+                    <div className="text-6xl group-hover:scale-110 transition-transform duration-300 animate-pulse">{weatherData.emoji}</div>
                     <div>
-                      <h2 className="text-5xl font-bold">28°C</h2>
-                      <p className="text-gray-300">Cloudy</p>
+                      <h2 className="text-5xl font-black text-white tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{weatherData.temp}</h2>
+                      <p className="text-cyan-300 font-semibold text-lg mt-1 tracking-wide">{weatherData.desc}</p>
                     </div>
                   </div>
                 </div>
@@ -277,10 +311,10 @@ export default function SoulDashboard() {
 
 function Widget({ title, children }) {
   return (
-    <div className="bg-white/5 border border-cyan-500/20 rounded-3xl p-6 backdrop-blur-xl shadow-[0_0_30px_rgba(0,255,255,0.05)]">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-cyan-300 tracking-widest text-sm">{title}</h3>
-        <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
+    <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-cyan-500/20 hover:border-purple-500/40 rounded-3xl p-7 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(0,255,255,0.05)] hover:shadow-[0_10px_40px_rgba(0,0,0,0.6),0_0_30px_rgba(138,43,226,0.15)] transition-all duration-500 group">
+      <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+        <h3 className="text-cyan-300 font-extrabold tracking-[0.2em] text-xs uppercase bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent">{title}</h3>
+        <div className="w-3 h-3 rounded-full bg-cyan-400 group-hover:bg-purple-400 transition-colors animate-pulse shadow-[0_0_12px_rgba(0,255,255,0.8)]" />
       </div>
       {children}
     </div>

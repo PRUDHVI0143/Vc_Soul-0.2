@@ -685,5 +685,28 @@ def manual_command(cmd):
         time.sleep(0.3)
     app.handle_command(cmd)
 
+@eel.expose
+def get_live_weather():
+    try:
+        res = requests.get('https://wttr.in/?format=j1', timeout=5).json()
+        cur = res['current_condition'][0]
+        loc = res['nearest_area'][0]
+        area = loc['areaName'][0]['value']
+        region = loc['region'][0]['value']
+        temp = cur['temp_C']
+        desc = cur['weatherDesc'][0]['value']
+        emoji = "☀️"
+        d_lower = desc.lower()
+        if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
+        elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
+        elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
+        elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
+        elif "fog" in d_lower or "mist" in d_lower: emoji = "🌫️"
+        elif "clear" in d_lower or "sun" in d_lower: emoji = "☀️"
+        return {"location": f"{area}, {region}", "temp": f"{temp}°C", "desc": desc, "emoji": emoji}
+    except Exception as e:
+        print("Live weather error:", e)
+        return {"location": "Punjab, IN", "temp": "28°C", "desc": "Cloudy", "emoji": "☁️"}
+
 if __name__ == "__main__":
     app.run()
