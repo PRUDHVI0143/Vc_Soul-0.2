@@ -54,6 +54,13 @@ try:
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
+try:
+    import pygame
+    PYGAME_AVAILABLE = True
+    pygame.mixer.init()
+except ImportError:
+    PYGAME_AVAILABLE = False
+
 WAKE_WORDS = ["hello bro", "hi bro", "hey bro", "bro"]
 
 # Eel initialization
@@ -177,6 +184,8 @@ class SoulAssistant:
             
         self._mic_ready = False
         self._active = False
+        self.selected_voice = "offline"
+        self.elevenlabs_key = ""
         
         # Text-to-Speech Queue
         self.tts_queue = queue.Queue()
@@ -200,11 +209,56 @@ class SoulAssistant:
         engine.setProperty('volume', 1.0)
         while True:
             text, auto_sleep = self.tts_queue.get()
-            try:
-                engine.say(text)
-                engine.runAndWait()
-            except Exception as e:
-                print("TTS Error:", e)
+            
+            eleven_played = False
+            if hasattr(self, 'selected_voice') and self.selected_voice != "offline":
+                try:
+                    url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.selected_voice}"
+                    headers = {
+                        "xi-api-key": getattr(self, 'elevenlabs_key', ""),
+                        "Content-Type": "application/json"
+                    }
+                    payload = {
+                        "text": text,
+                        "model_id": "eleven_monolingual_v1",
+                        "voice_settings": {"stability": 0.5, "similarity_boost": 0.7}
+                    }
+                    res = requests.post(url, json=payload, headers=headers, timeout=5)
+                    if res.status_code == 200:
+                        temp_mp3 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_speech.mp3")
+                        with open(temp_mp3, "wb") as f:
+                            f.write(res.content)
+                        
+                        try:
+                            if PYGAME_AVAILABLE:
+                                pygame.mixer.music.load(temp_mp3)
+                                pygame.mixer.music.play()
+                                while pygame.mixer.music.get_busy():
+                                    time.sleep(0.1)
+                                pygame.mixer.music.unload()
+                            else:
+                                import ctypes
+                                ctypes.windll.winmm.mciSendStringW(f'close temp_audio', None, 0, None)
+                                ctypes.windll.winmm.mciSendStringW(f'open "{temp_mp3}" alias temp_audio', None, 0, None)
+                                ctypes.windll.winmm.mciSendStringW('play temp_audio wait', None, 0, None)
+                                ctypes.windll.winmm.mciSendStringW('close temp_audio', None, 0, None)
+                        except Exception as play_e:
+                            print("ElevenLabs playback error, falling back to pyttsx3:", play_e)
+                            engine.say(text)
+                            engine.runAndWait()
+                        
+                        eleven_played = True
+                    else:
+                        print(f"ElevenLabs API Error {res.status_code}, falling back to pyttsx3")
+                except Exception as el_e:
+                    print("ElevenLabs request error, falling back to pyttsx3:", el_e)
+            
+            if not eleven_played:
+                try:
+                    engine.say(text)
+                    engine.runAndWait()
+                except Exception as e:
+                    print("TTS Error:", e)
             
             if auto_sleep:
                 time.sleep(8) # Increased auto-sleep to 8 seconds for more voice time
@@ -696,6 +750,15 @@ def manual_command(cmd):
         app._activate_silent()  # Auto-activate silently when user types a command
         time.sleep(0.3)
     app.handle_command(cmd)
+
+@eel.expose
+def update_setting_py(key, val):
+    if key == "voice":
+        app.selected_voice = val
+        print(f"DEBUG: Voice switched to {val}")
+    elif key == "elevenlabs_key":
+        app.elevenlabs_key = val.strip()
+        print("DEBUG: ElevenLabs API Key updated")
 
 @eel.expose
 def get_live_weather(lat=None, lon=None):

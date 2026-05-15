@@ -202,6 +202,9 @@ function toggleWakeWord() {
 
 function updateSetting(key, val) {
     console.log(`Setting updated: ${key} = ${val}`);
+    if (window.eel && window.eel.update_setting_py) {
+        eel.update_setting_py(key, val)();
+    }
 }
 
 function toggleLightDarkMode(mode) {

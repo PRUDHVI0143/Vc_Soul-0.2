@@ -92,6 +92,20 @@
                     </select>
                 </div>
                 <div class="setting-item">
+                    <label>AI Voice Selection</label>
+                    <select id="setting-voice" onchange="updateSetting('voice', this.value)">
+                        <option value="offline">Windows Offline (Local Fallback)</option>
+                        <option value="2zRM7PkgwBPiau2jvVXc">ElevenLabs: Aria (Calm & Professional)</option>
+                        <option value="2BsEFcU7jUhLaUwV4h7l">ElevenLabs: Marcus (Deep & Commanding)</option>
+                        <option value="DKSYnVsGaIwlOF31S3sV">ElevenLabs: Sarah (Warm & Conversational)</option>
+                        <option value="4O1sYUnmtThcBoSBrri7">ElevenLabs: David (Crisp & Authoritative)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>ElevenLabs API Key</label>
+                    <input type="password" id="setting-eleven-key" placeholder="Paste ElevenLabs Key (optional)" onchange="updateSetting('elevenlabs_key', this.value)" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 229, 255, 0.3); color: var(--cyan); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; outline: none; width: 55%;">
+                </div>
+                <div class="setting-item">
                     <label>AI Intelligence Mode</label>
                     <select id="setting-ai-mode" onchange="updateSetting('ai_mode', this.value)">
                         <option value="hybrid">Hybrid (Online + Wikipedia Fallback)</option>
