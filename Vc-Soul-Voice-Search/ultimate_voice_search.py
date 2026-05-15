@@ -212,46 +212,65 @@ class SoulAssistant:
             
             eleven_played = False
             if hasattr(self, 'selected_voice') and self.selected_voice != "offline":
-                try:
-                    url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.selected_voice}"
-                    headers = {
-                        "xi-api-key": getattr(self, 'elevenlabs_key', ""),
-                        "Content-Type": "application/json"
-                    }
-                    payload = {
-                        "text": text,
-                        "model_id": "eleven_monolingual_v1",
-                        "voice_settings": {"stability": 0.5, "similarity_boost": 0.7}
-                    }
-                    res = requests.post(url, json=payload, headers=headers, timeout=5)
-                    if res.status_code == 200:
-                        temp_mp3 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_speech.mp3")
-                        with open(temp_mp3, "wb") as f:
-                            f.write(res.content)
-                        
-                        try:
-                            if PYGAME_AVAILABLE:
-                                pygame.mixer.music.load(temp_mp3)
-                                pygame.mixer.music.play()
-                                while pygame.mixer.music.get_busy():
-                                    time.sleep(0.1)
-                                pygame.mixer.music.unload()
-                            else:
-                                import ctypes
-                                ctypes.windll.winmm.mciSendStringW(f'close temp_audio', None, 0, None)
-                                ctypes.windll.winmm.mciSendStringW(f'open "{temp_mp3}" alias temp_audio', None, 0, None)
-                                ctypes.windll.winmm.mciSendStringW('play temp_audio wait', None, 0, None)
-                                ctypes.windll.winmm.mciSendStringW('close temp_audio', None, 0, None)
-                        except Exception as play_e:
-                            print("ElevenLabs playback error, falling back to pyttsx3:", play_e)
-                            engine.say(text)
-                            engine.runAndWait()
-                        
+                audio_content = None
+                # 1. Try ElevenLabs API first if key is present
+                key = getattr(self, 'elevenlabs_key', "").strip()
+                if key:
+                    try:
+                        url = f"https://api.elevenlabs.io/v1/text-to-speech/{self.selected_voice}"
+                        headers = {"xi-api-key": key, "Content-Type": "application/json"}
+                        payload = {
+                            "text": text, "model_id": "eleven_monolingual_v1",
+                            "voice_settings": {"stability": 0.5, "similarity_boost": 0.7}
+                        }
+                        res = requests.post(url, json=payload, headers=headers, timeout=5)
+                        if res.status_code == 200:
+                            audio_content = res.content
+                        else:
+                            print(f"ElevenLabs API Error {res.status_code}, attempting Google Neural Fallback")
+                    except Exception as el_e:
+                        print("ElevenLabs request error, attempting Google Neural Fallback:", el_e)
+                
+                # 2. Smart Free Neural Fallback (Google Translate TTS) if ElevenLabs failed or no key
+                if not audio_content:
+                    try:
+                        tld_map = {
+                            "2zRM7PkgwBPiau2jvVXc": "com",     # Aria -> US Neural
+                            "2BsEFcU7jUhLaUwV4h7l": "co.uk",   # Marcus -> UK British Neural
+                            "DKSYnVsGaIwlOF31S3sV": "ca",      # Sarah -> Canadian Neural
+                            "4O1sYUnmtThcBoSBrri7": "com.au"   # David -> Australian Neural
+                        }
+                        tld = tld_map.get(self.selected_voice, "com")
+                        g_url = f"https://translate.google.{tld}/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={urllib.parse.quote(text[:200])}"
+                        g_res = requests.get(g_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+                        if g_res.status_code == 200:
+                            audio_content = g_res.content
+                            print("DEBUG: Successfully fetched Google Neural AI Voice fallback")
+                    except Exception as g_e:
+                        print("Google Neural Fallback error:", g_e)
+
+                # 3. Play the resulting audio stream
+                if audio_content:
+                    temp_mp3 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_speech.mp3")
+                    with open(temp_mp3, "wb") as f:
+                        f.write(audio_content)
+                    
+                    try:
+                        if PYGAME_AVAILABLE:
+                            pygame.mixer.music.load(temp_mp3)
+                            pygame.mixer.music.play()
+                            while pygame.mixer.music.get_busy():
+                                time.sleep(0.1)
+                            pygame.mixer.music.unload()
+                        else:
+                            import ctypes
+                            ctypes.windll.winmm.mciSendStringW(f'close temp_audio', None, 0, None)
+                            ctypes.windll.winmm.mciSendStringW(f'open "{temp_mp3}" alias temp_audio', None, 0, None)
+                            ctypes.windll.winmm.mciSendStringW('play temp_audio wait', None, 0, None)
+                            ctypes.windll.winmm.mciSendStringW('close temp_audio', None, 0, None)
                         eleven_played = True
-                    else:
-                        print(f"ElevenLabs API Error {res.status_code}, falling back to pyttsx3")
-                except Exception as el_e:
-                    print("ElevenLabs request error, falling back to pyttsx3:", el_e)
+                    except Exception as play_e:
+                        print("Audio playback error, falling back to pyttsx3:", play_e)
             
             if not eleven_played:
                 try:
