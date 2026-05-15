@@ -10,6 +10,37 @@ import pyttsx3
 import winsound
 import eel
 
+# Ensure stdout/stderr are never None (fixes pythonw.exe crash from Desktop shortcuts)
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "soul.log")
+log_file = open(log_path, "a", encoding="utf-8", buffering=1)
+
+class Tee:
+    def __init__(self, stream1, stream2):
+        self.stream1 = stream1
+        self.stream2 = stream2
+    def write(self, data):
+        if self.stream1:
+            try:
+                self.stream1.write(data)
+                self.stream1.flush()
+            except: pass
+        if self.stream2:
+            try:
+                self.stream2.write(data)
+                self.stream2.flush()
+            except: pass
+    def flush(self):
+        if self.stream1:
+            try: self.stream1.flush()
+            except: pass
+        if self.stream2:
+            try: self.stream2.flush()
+            except: pass
+
+sys.stdout = Tee(sys.stdout, log_file)
+sys.stderr = Tee(sys.stderr, log_file)
+
+
 try:
     import requests
     import google.generativeai as genai
