@@ -208,8 +208,8 @@ body {
 /* WEATHER WIDGET (BOTTOM LEFT) */
 .weather-widget {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
+    bottom: 140px;
+    left: 35px;
     width: 240px;
     background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
     border: 1px solid rgba(0, 229, 255, 0.2);

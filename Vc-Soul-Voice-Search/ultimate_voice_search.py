@@ -688,7 +688,6 @@ def manual_command(cmd):
 @eel.expose
 def get_live_weather(lat=None, lon=None):
     try:
-        # If GPS coordinates not provided by browser, use high-accuracy IP geolocation
         if not lat or not lon:
             try:
                 ip_data = requests.get('http://ip-api.com/json', timeout=3).json()
@@ -706,14 +705,19 @@ def get_live_weather(lat=None, lon=None):
         region = loc['region'][0]['value']
         temp = cur['temp_C']
         desc = cur['weatherDesc'][0]['value']
-        emoji = "☀️"
+        
+        # Determine Day or Night
+        hour = time.localtime().tm_hour
+        is_night = hour < 6 or hour >= 19
+        
+        emoji = "🌙" if is_night else "☀️"
         d_lower = desc.lower()
         if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
         elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
         elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
         elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
         elif "fog" in d_lower or "mist" in d_lower: emoji = "🌫️"
-        elif "clear" in d_lower or "sun" in d_lower: emoji = "☀️"
+        elif "clear" in d_lower or "sun" in d_lower: emoji = "🌙" if is_night else "☀️"
         return {"location": f"{area}, {region}", "temp": f"{temp}°C", "desc": desc, "emoji": emoji}
     except Exception as e:
         print("Live weather error:", e)

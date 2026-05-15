@@ -60,9 +60,12 @@ export default function SoulDashboard() {
           const cur = res.current_condition[0];
           const loc = res.nearest_area[0];
           const desc = cur.weatherDesc[0].value;
-          let emoji = "☀️";
+          const hour = new Date().getHours();
+          const isNight = hour < 6 || hour >= 19;
+          let emoji = isNight ? "🌙" : "☀️";
           if (desc.toLowerCase().includes("cloud")) emoji = "☁️";
           else if (desc.toLowerCase().includes("rain")) emoji = "🌧️";
+          else if (desc.toLowerCase().includes("clear") || desc.toLowerCase().includes("sun")) emoji = isNight ? "🌙" : "☀️";
           setWeatherData({
             location: `${loc.areaName[0].value}, ${loc.region[0].value}`,
             temp: `${cur.temp_C}°C`,
