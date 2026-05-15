@@ -96,7 +96,7 @@ export default function SoulDashboard() {
           <div className="bg-white/5 rounded-3xl p-5 border border-cyan-500/20">
             <p className="text-sm text-cyan-300 mb-2">AI MODE</p>
             <div className="flex items-center justify-between">
-              <span className="text-xl font-semibold">JARVIS</span>
+              <span className="text-xl font-semibold">Vc Soul</span>
               <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse" />
             </div>
           </div>

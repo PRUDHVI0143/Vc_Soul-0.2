@@ -1,4 +1,4 @@
-🎤 JARVIS VOICE SEARCH - INSTANT SETUP
+🎤 Vc Soul VOICE SEARCH - INSTANT SETUP
 
 1. DOUBLE-CLICK install.bat (Windows) or install.sh (Mac/Linux)
 2. DOUBLE-CLICK ultimate_voice_search.py

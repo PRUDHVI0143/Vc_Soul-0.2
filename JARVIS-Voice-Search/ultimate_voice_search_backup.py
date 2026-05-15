@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🔍 ULTIMATE JARVIS - Voice Control EVERYTHING!
+🔍 ULTIMATE Vc Soul - Voice Control EVERYTHING!
 Say: "search python tutorial" or "open Netflix" or "Google Tesla"
 """
 import sys
@@ -14,10 +14,10 @@ import speech_recognition as sr
 import pyttsx3
 import re
 
-class UltimateJarvis:
+class UltimateVcSoul:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("🤖 ULTIMATE JARVIS - Voice Control")
+        self.root.title("🤖 ULTIMATE Vc Soul - Voice Control")
         self.root.geometry("600x500")
         self.root.configure(bg='#0f0f23')
         self.setup_voice()
@@ -32,7 +32,7 @@ class UltimateJarvis:
         self.tts.setProperty('rate', 180)
     
     def setup_ui(self):
-        tk.Label(self.root, text="🤖 ULTIMATE JARVIS", font=('Arial', 24, 'bold'), 
+        tk.Label(self.root, text="🤖 ULTIMATE Vc Soul", font=('Arial', 24, 'bold'), 
                 fg='#00d4ff', bg='#0f0f23').pack(pady=20)
         
         tk.Label(self.root, textvariable=self.status_var, font=('Arial', 12), 
@@ -199,9 +199,9 @@ class UltimateJarvis:
             self.entry.delete(0, tk.END)
     
     def run(self):
-        self.speak("Ultimate JARVIS activated! Say 'open Netflix' or 'search quantum physics'")
+        self.speak("Ultimate Vc Soul activated! Say 'open Netflix' or 'search quantum physics'")
         self.root.mainloop()
 
 if __name__ == "__main__":
-    app = UltimateJarvis()
+    app = UltimateVcSoul()
     app.run()
