@@ -1,0 +1,290 @@
+:root {
+    --bg-dark: #0a0a0c;
+    --panel-bg: rgba(22, 23, 25, 0.6);
+    --text-white: #e3e3e3;
+    --text-grey: #8e918f;
+    --cyan: #00e5ff;
+    --purple: #8a2be2;
+    --blue: #4169e1;
+    --yellow: #fbbc04;
+    --red: #f28b82;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    color: var(--text-white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+}
+
+#vanta-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 800px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px;
+    position: relative;
+}
+
+/* TOP BAR */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--text-grey);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transition: background-color 0.4s ease;
+}
+
+#status-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-grey);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-chat {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+.btn-chat:hover {
+    opacity: 1;
+}
+
+/* MAIN DISPLAY */
+.main-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    position: relative;
+}
+
+.main-text-container {
+    z-index: 10;
+    text-align: center;
+    margin-top: 40px;
+    max-width: 600px;
+}
+
+#main-text {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    transition: opacity 0.3s ease;
+}
+
+/* ORGANIC BLOB CSS */
+.orb-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+/* When state is active, fade in the orb */
+.orb-container.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.blob {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: screen;
+    filter: blur(15px);
+    opacity: 0.8;
+}
+
+.blob-cyan {
+    background: linear-gradient(135deg, var(--cyan), transparent);
+    animation: morph 8s ease-in-out infinite, spin 12s linear infinite;
+}
+
+.blob-purple {
+    background: linear-gradient(135deg, var(--purple), transparent);
+    animation: morph 10s ease-in-out infinite reverse, spin 15s linear infinite reverse;
+}
+
+.blob-blue {
+    background: linear-gradient(135deg, var(--blue), transparent);
+    animation: morph 6s ease-in-out infinite, spin 20s linear infinite;
+}
+
+/* Advanced border-radius morphing for the organic fluid shape */
+@keyframes morph {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+/* Audio Reactivity Classes */
+.orb-container.listening .blob {
+    animation-duration: 2s, 4s; /* Speed up morph and spin heavily */
+    transform: scale(1.15);
+    filter: blur(20px);
+}
+.orb-container.thinking .blob {
+    animation-duration: 4s, 8s;
+    transform: scale(0.9);
+}
+
+/* BOTTOM CONTROLS */
+.bottom-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.suggestions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.suggestion-btn {
+    background-color: var(--panel-bg);
+    color: var(--text-white);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.suggestion-btn:hover {
+    background-color: var(--purple);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.input-container {
+    background-color: var(--panel-bg);
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    padding: 5px 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.input-icon {
+    color: var(--purple);
+    font-size: 14px;
+    margin-right: 15px;
+}
+
+#command-input {
+    background: transparent;
+    border: none;
+    color: var(--text-white);
+    font-size: 16px;
+    width: 100%;
+    padding: 15px 0;
+    outline: none;
+    font-weight: 600;
+}
+
+#command-input::placeholder {
+    color: var(--text-grey);
+}
+
+/* AI Rich Response Panel */
+#ai-response-container {
+    margin-top: 20px;
+    background: rgba(20, 20, 25, 0.7);
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    animation: fadeIn 0.4s ease-out forwards;
+    max-width: 600px;
+    width: 100%;
+}
+
+#ai-text {
+    font-size: 1.1rem;
+    color: var(--text-white);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: left;
+    font-weight: 400;
+}
+
+.ai-images-grid {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.ai-images-grid img {
+    flex: 1;
+    max-width: 48%;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    object-fit: cover;
+    max-height: 180px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

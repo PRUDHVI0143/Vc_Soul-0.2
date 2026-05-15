@@ -1,0 +1,5 @@
+# S.O.U.L. AI Dependencies
+google-generativeai
+transformers
+torch
+accelerate

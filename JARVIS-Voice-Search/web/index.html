@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.O.U.L — System of Universal Listening</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <!-- Vanta.js Background Container -->
+    <div id="vanta-bg"></div>
+
+    <div class="app-container">
+        <!-- Top Status Bar -->
+        <header class="top-bar">
+            <div class="status-indicator">
+                <span class="dot" id="status-dot"></span>
+                <span id="status-text">Waiting for you to say 'Hello Bro'...</span>
+            </div>
+            <button class="btn-chat" onclick="quickAction('hello bro')" title="Personal Chat">🪽</button>
+        </header>
+
+        <!-- Main Display (Orb + Text) -->
+        <main class="main-display">
+            <div class="orb-container" id="orb-container" onclick="manualActivate()">
+                <div class="blob blob-cyan"></div>
+                <div class="blob blob-purple"></div>
+                <div class="blob blob-blue"></div>
+            </div>
+            <div class="main-text-container">
+                <h1 id="main-text">How can I help?</h1>
+                <div id="ai-response-container" style="display: none;">
+                    <p id="ai-text"></p>
+                    <div id="ai-images" class="ai-images-grid"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Controls -->
+        <footer class="bottom-bar">
+            <div class="suggestions">
+                <button class="suggestion-btn" onclick="quickAction('Build Box')">Build Box</button>
+                <button class="suggestion-btn" onclick="quickAction('Suggestion of plan')">Suggestion of plan</button>
+                <button class="suggestion-btn" onclick="quickAction('Help me code')">Help me code</button>
+                <button class="suggestion-btn" onclick="quickAction('Open ChatGPT')">Open ChatGPT</button>
+            </div>
+            <div class="input-container">
+                <span class="input-icon">▶</span>
+                <input type="text" id="command-input" placeholder="Type a command...">
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Vanta.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>

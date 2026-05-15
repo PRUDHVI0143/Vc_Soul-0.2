@@ -1,0 +1,628 @@
+#!/usr/bin/env python3
+"""
+🌌 S.O.U.L v2.0 - System of Universal Listening
+  Wake word: "Hello Bro"
+  Conversational voice assistant with Web HUD UI
+"""
+import subprocess, platform, threading, urllib.parse, time, re, os, sys, queue
+import speech_recognition as sr
+import pyttsx3
+import winsound
+import eel
+
+try:
+    import requests
+    import google.generativeai as genai
+    ONLINE_AI_AVAILABLE = True
+except ImportError:
+    ONLINE_AI_AVAILABLE = False
+
+try:
+    from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
+
+WAKE_WORDS = ["hello bro", "hi bro", "hey bro", "bro"]
+
+# Eel initialization
+web_dir = os.path.join(os.path.dirname(__file__), 'web')
+eel.init(web_dir)
+
+class SoulAIBrain:
+    def __init__(self):
+        self.gemini_key = "AIzaSyAPSWWrNEw8ez0CM-mpLTz4Ti-1L8Drk6o"
+        self.offline_model_name = "microsoft/Phi-3-mini-4k-instruct"
+        self.offline_generator = None
+        self.offline_ready = False
+        self.is_loading_offline = False
+
+        if ONLINE_AI_AVAILABLE and self.gemini_key != "YOUR_GEMINI_API_KEY_HERE":
+            genai.configure(api_key=self.gemini_key)
+            # gemini-2.5-flash is the current supported model in this environment
+            self.gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+        else:
+            self.gemini_model = None
+
+    def is_online(self):
+        if not ONLINE_AI_AVAILABLE: return False
+        try:
+            # Using a real URL instead of an IP, as some networks block 8.8.8.8
+            requests.get("https://www.google.com", timeout=3)
+            return True
+        except Exception as e:
+            print(f"Connectivity Check Failed: {e}")
+            return False
+
+    def load_offline_model(self):
+        if not TRANSFORMERS_AVAILABLE:
+            print("Transformers not installed. Offline AI disabled.")
+            return
+        if self.offline_ready or self.is_loading_offline:
+            return
+        self.is_loading_offline = True
+        try:
+            print("Loading offline AI model (this may take a while)...")
+            tokenizer = AutoTokenizer.from_pretrained(self.offline_model_name)
+            model = AutoModelForCausalLM.from_pretrained(self.offline_model_name)
+            self.offline_generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=-1)
+            self.offline_ready = True
+            print("Offline AI model loaded.")
+        except Exception as e:
+            print("Failed to load offline AI:", e)
+        finally:
+            self.is_loading_offline = False
+
+    def generate(self, query):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        if ONLINE_AI_AVAILABLE and self.gemini_model:
+            try:
+                # Giving context about the current date for "Recent Info"
+                prompt = f"System: The current date and time is {current_time}. You are S.O.U.L, a helpful AI voice assistant. Give a concise, conversational answer to this query in 1 to 3 sentences, ensuring your info is up to date: {query}"
+                response = self.gemini_model.generate_content(prompt)
+                
+                if response.candidates and response.candidates[0].content.parts:
+                    text = response.text.replace("*", "").replace("#", "").strip()
+                    return text, "Online Gemini"
+                else:
+                    print("DEBUG: Gemini blocked response")
+            except Exception as e:
+                print(f"DEBUG: Online AI unavailable: {e}")
+        
+        # Fallback if offline or API error
+        if not self.offline_ready:
+            # Start background loading if not already
+            if TRANSFORMERS_AVAILABLE and not self.is_loading_offline:
+                threading.Thread(target=self.load_offline_model, daemon=True).start()
+            return "I am currently offline and my local AI is initializing. Please give me a moment to load my offline brain.", "Offline Loading"
+        
+        try:
+            prompt = f"System Date: {current_time}. You are S.O.U.L, a helpful voice assistant. Answer concisely: {query}"
+            res = self.offline_generator(prompt, max_new_tokens=100, do_sample=True, temperature=0.7)[0]['generated_text']
+            answer = res.split(prompt)[-1].strip()
+            return answer, "Offline Phi-3"
+        except Exception as e:
+            print("Offline AI Error:", e)
+            return "I'm having trouble thinking offline right now.", "Offline Error"
+
+    def get_images(self, query):
+        try:
+            url = f"https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&generator=search&gsrsearch={urllib.parse.quote(query)}&gsrlimit=2&pithumbsize=500"
+            res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).json()
+            images = [v['thumbnail']['source'] for k,v in res.get('query', {}).get('pages', {}).items() if 'thumbnail' in v]
+            return images[:2]
+        except Exception as e:
+            print("Image fetch error:", e)
+            return []
+
+class SoulAssistant:
+    def __init__(self):
+        self.ai_brain = SoulAIBrain()
+        self.r = sr.Recognizer()
+        self.r.energy_threshold = 400
+        self.r.dynamic_energy_threshold = True
+        try:
+            self.mic = sr.Microphone()
+        except Exception:
+            self.mic = None
+            
+        self._mic_ready = False
+        self._active = False
+        
+        # Text-to-Speech Queue
+        self.tts_queue = queue.Queue()
+        threading.Thread(target=self._tts_worker, daemon=True).start()
+
+        # Threading events
+        self._mic_event = threading.Event()
+        self._stop_event = threading.Event()
+
+    # ── State Updates (Bridged to JS) ────────────────
+    def _ui_update(self, state, status_text=None, dot_color=None, main_text=None):
+        try:
+            eel.updateState(state, status_text, dot_color, main_text)
+        except Exception as e:
+            print("Eel UI update failed:", e)
+
+    # ── TTS ──────────────────────────────────────
+    def _tts_worker(self):
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 170)
+        engine.setProperty('volume', 1.0)
+        while True:
+            text, auto_sleep = self.tts_queue.get()
+            try:
+                engine.say(text)
+                engine.runAndWait()
+            except Exception as e:
+                print("TTS Error:", e)
+            
+            if auto_sleep:
+                time.sleep(8) # Increased auto-sleep to 8 seconds for more voice time
+                if self._active:
+                    self._deactivate()
+
+    def speak(self, text):
+        self.tts_queue.put((text, False))
+
+    def _speak_and_resume(self, text):
+        self.tts_queue.put((text, True))
+
+    # ── Site resolver ────────────────────────────
+    def normalize(self, t):
+        fixes = {
+            "netfilx":"netflix","netfile":"netflix","net flix":"netflix",
+            "you tube":"youtube","youtub":"youtube",
+            "disney plus":"disney","prime":"amazon","amazon prime":"amazon",
+            "insta":"instagram","tik tok":"tiktok","red it":"reddit",
+            "stack overflow":"stackoverflow",
+            "ani wave":"aniwave","any wave":"aniwave","aniwaves":"aniwave","anime":"aniwave",
+            "i bomma":"ibomma",
+        }
+        t = t.lower().strip()
+        return fixes.get(t, t)
+
+    def get_url(self, name):
+        sites = {
+            "netflix":"https://www.netflix.com","youtube":"https://www.youtube.com",
+            "hulu":"https://www.hulu.com","disney":"https://www.disneyplus.com",
+            "amazon":"https://www.amazon.com","prime video":"https://www.primevideo.com",
+            "spotify":"https://open.spotify.com","instagram":"https://www.instagram.com",
+            "twitter":"https://twitter.com","facebook":"https://www.facebook.com",
+            "tiktok":"https://www.tiktok.com","reddit":"https://www.reddit.com",
+            "linkedin":"https://www.linkedin.com","whatsapp":"https://web.whatsapp.com",
+            "ebay":"https://www.ebay.com","flipkart":"https://www.flipkart.com",
+            "google":"https://www.google.com","bing":"https://www.bing.com",
+            "github":"https://github.com","stackoverflow":"https://stackoverflow.com",
+            "wikipedia":"https://www.wikipedia.org","gmail":"https://mail.google.com",
+            "drive":"https://drive.google.com","maps":"https://maps.google.com",
+            "translate":"https://translate.google.com","chatgpt":"https://chat.openai.com",
+            "help me code":"https://claude.ai/new",
+            "claude":"https://claude.ai/new",
+            "suggestion of plan":"https://gemini.google.com/app/25ee25024d52176e?is_sa=1&is_sa=1&android-min-version=301356232&ios-min-version=322.0&campaign_id=bkws&utm_source=sem&utm_medium=paid-media&utm_campaign=bkws&pt=9008&mt=8&ct=p-growth-sem-bkws&gclsrc=aw.ds&gad_source=1&gad_campaignid=20357620749&gbraid=0AAAAApk5BhkwkwTdfLEMKGGYa4-aVW3Ly&gclid=CjwKCAjwnZfPBhAGEiwAzg-VzBueThy90e3A5KdNU4hWObyQS5TSualVVjZTyW-lSdN6XaxbQtq9sxoCEm8QAvD_BwE",
+            "gemini":"https://gemini.google.com/",
+            "build box":"https://app.blackbox.ai/",
+            "black box":"https://app.blackbox.ai/",
+            "aniwave":"https://aniwaves.ru/",
+            "manga":"https://mangafire.to/home",
+            "ibomma":"https://bappam1.com/telugu-movies/",
+        }
+        return sites.get(self.normalize(name))
+
+    def open_url(self, url):
+        try:
+            sys = platform.system()
+            if sys == "Windows":
+                subprocess.run(f'start brave "{url}"', shell=True, check=True)
+            elif sys == "Darwin":
+                subprocess.run(["open","-a","Brave Browser",url], check=True)
+            else:
+                subprocess.run(["brave-browser",url], check=True)
+        except:
+            import webbrowser; webbrowser.open(url)
+
+    # ── Command handler ───────────────────────────
+    def handle_command(self, raw):
+        cmd = raw.lower().strip()
+        self._ui_update("thinking", "PROCESSING", "#fbbc04", cmd.capitalize())
+        
+        try:
+            winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except: pass
+
+        response = None
+
+        # Exit/sleep
+        if any(w in cmd for w in ["goodbye","bye","sleep","stop","exit","quit"]):
+            response = "Going to sleep. Say 'Hello Bro' to wake me."
+            self._ui_update("idle", "Waiting for you to say 'Hello Bro'...", "#9b66d6", "Sleeping...")
+            self._active = False
+            try: winsound.PlaySound("SystemExit", winsound.SND_ALIAS | winsound.SND_ASYNC)
+            except: pass
+            threading.Thread(target=lambda: self.speak(response), daemon=True).start()
+            return
+
+        # Rich Interaction Content (Small Talk & Utils)
+        import random, datetime
+
+        # 1. Greetings
+        if cmd in ["hi", "hello", "hey", "hello bro", "hi bro", "hey bro", "hi soul", "hello soul"]:
+            responses = [
+                "Hello there! How can I help you today?", 
+                "Greetings! What's on your mind?", 
+                "Hi! I am here and ready to chat.",
+                "Hey! It's great to hear from you.",
+                "Hello! I am ready for your next command."
+            ]
+            response = random.choice(responses)
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+            
+        # 2. How are you / Status
+        if any(w in cmd for w in ["how are you", "how are you doing", "what's up", "whats up", "how do you feel"]):
+            responses = [
+                "I'm functioning perfectly, thank you! How about you?", 
+                "Doing great. What can I assist you with today?", 
+                "All systems are online and optimal. Ready to help!",
+                "I'm doing wonderful. Thanks for asking! Need anything?",
+                "Feeling very energetic today. What's our mission?"
+            ]
+            response = random.choice(responses)
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # 3. Identity
+        if any(w in cmd for w in ["who are you", "what are you", "your name", "who is soul"]):
+            responses = [
+                "I am S.O.U.L, your System of Universal Listening. I'm a highly advanced AI interface here to make your life easier.",
+                "I am S.O.U.L, your personal assistant. I can open websites, search the web, and help you navigate your digital life.",
+                "My name is S.O.U.L. I'm an intelligent voice assistant built to serve you."
+            ]
+            response = random.choice(responses)
+            self._ui_update("wake", "LISTENING", "#00e5ff", "I am S.O.U.L.")
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # 4. Creator
+        if any(w in cmd for w in ["who created you", "who made you", "your creator", "who is your boss"]):
+            response = "I was created by a brilliant mind. My purpose is to be the ultimate voice search and assistance system."
+            self._ui_update("wake", "LISTENING", "#00e5ff", "I have a great creator.")
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # 5. Capabilities
+        if any(w in cmd for w in ["what can you do", "help me", "your features", "how can you help"]):
+            response = "I can do many things. I can open apps, search the web, play YouTube videos, check the time, or even tell you a joke! Just ask."
+            self._ui_update("wake", "LISTENING", "#00e5ff", "I can help with many things.")
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # 6. Compliments
+        if any(w in cmd for w in ["you are awesome", "you are good", "good job", "nice work", "i love you", "you are smart"]):
+            responses = [
+                "Thank you! That means a lot to me.",
+                "I appreciate that! I'm always trying my best to help.",
+                "You're awesome too! We make a great team.",
+                "Aww, thanks! You just made my day... if AIs had days, that is."
+            ]
+            response = random.choice(responses)
+            self._ui_update("wake", "LISTENING", "#00e5ff", "Thank you!")
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # 7. Fun Facts
+        if any(w in cmd for w in ["tell me a fact", "interesting fact", "did you know"]):
+            facts = [
+                "Did you know that the first computer bug was an actual real bug? It was a moth found in the Harvard Mark II computer.",
+                "A jiffy is an actual unit of time. It's 1/100th of a second.",
+                "The first electronic computer ENIAC weighed more than 27 tons and took up 1800 square feet.",
+                "Did you know that water makes different pouring sounds depending on its temperature?",
+                "Sharks have existed for longer than trees. They have been around for over 400 million years!"
+            ]
+            response = random.choice(facts)
+            self._ui_update("wake", "LISTENING", "#00e5ff", "Here is a fact...")
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        if any(w in cmd for w in ["what time is it", "tell me the time", "current time"]):
+            now = datetime.datetime.now().strftime("%I:%M %p")
+            response = f"The current time is {now}."
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        if any(w in cmd for w in ["what is the date", "what's the date", "today's date"]):
+            date = datetime.datetime.now().strftime("%B %d, %Y")
+            response = f"Today is {date}."
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+            
+        if any(w in cmd for w in ["tell me a joke", "make me laugh"]):
+            jokes = [
+                "Why do programmers prefer dark mode? Because light attracts bugs.",
+                "There are 10 types of people in the world: those who understand binary, and those who don't.",
+                "I would tell you a UDP joke, but you might not get it.",
+                "Why did the developer go broke? Because he used up all his cache.",
+                "An SQL query goes into a bar, walks up to two tables and asks: Can I join you?",
+                "How many programmers does it take to change a light bulb? None, that's a hardware problem."
+            ]
+            response = random.choice(jokes)
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # Local Windows Apps (Comprehensive List)
+        local_apps = {
+            "calculator": "calc",
+            "camera": "start microsoft.windows.camera:",
+            "calendar": "start outlookcal:",
+            "settings": "start ms-settings:",
+            "notepad": "notepad",
+            "paint": "mspaint",
+            "file explorer": "explorer",
+            "task manager": "taskmgr",
+            "command prompt": "cmd",
+            "control panel": "control",
+            "wordpad": "write",
+            "snipping tool": "snippingtool",
+            "mail": "start outlookmail:",
+            "maps": "start bingmaps:",
+            "weather": "start bingweather:",
+            "photos": "start ms-photos:",
+            "store": "start ms-windows-store:",
+            "clock": "start ms-clock:",
+            "alarms": "start ms-clock:",
+            "xbox": "start xbox:",
+            "word": "start winword",
+            "excel": "start excel",
+            "powerpoint": "start powerpnt",
+            "chrome": "start chrome",
+            "edge": "start msedge",
+            "firefox": "start firefox",
+            "brave": "start brave",
+            "discord": "start discord",
+            "vlc": "start vlc"
+        }
+        
+        # 1. Check strict known app mappings
+        for app_name, app_cmd in local_apps.items():
+            if f"open {app_name}" in cmd or f"launch {app_name}" in cmd or (app_name in cmd and len(cmd.split()) <= 2):
+                subprocess.run(app_cmd, shell=True)
+                response = f"Opening {app_name} for you."
+                self._ui_update("wake", "LISTENING", "#00e5ff", response)
+                self._mic_event.set() # Resume listening
+                threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+                return
+
+        # Direct web open
+        words = cmd.split()
+        if len(words)>=2 and words[0] in ("open","go","launch","visit","browse","show"):
+            site = self.normalize(" ".join(words[1:]))
+            url = self.get_url(site)
+            if url:
+                self.open_url(url)
+                response = f"Opening {site.title()}."
+                self._ui_update("wake", "LISTENING", "#00e5ff", response)
+                self._mic_event.set() # Resume listening
+                threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+                return
+            else:
+                # Dynamic Windows App Fallback: If it's not a known website, let Windows try to open it as an app
+                target = "".join(words[1:]) # e.g. "telegram" or "spotify"
+                try:
+                    res = subprocess.run(f"start {target}", shell=True, capture_output=True)
+                    if res.returncode == 0:
+                        response = f"Attempting to open {site}."
+                        self._ui_update("wake", "LISTENING", "#00e5ff", response)
+                        self._mic_event.set() # Resume listening
+                        threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+                        return
+                except:
+                    pass
+
+        # AI Knowledge Questions (what, who, why, where, how)
+        ai_triggers = ["what", "who", "why", "where", "how", "tell"]
+        words = cmd.split()
+        if words and words[0] in ai_triggers:
+            self._ui_update("thinking", "AI Brain Processing...", "#fbbc04", "Let me think...")
+            
+            # Run AI generation and Image fetching in parallel to save time
+            res_queue = queue.Queue()
+            img_queue = queue.Queue()
+            
+            def fetch_ai():
+                res_queue.put(self.ai_brain.generate(cmd))
+            
+            def fetch_imgs():
+                search_term = cmd
+                for w in ["who is", "what is", "where is", "tell me about", "why is", "how to"]:
+                    search_term = search_term.replace(w, "")
+                img_queue.put(self.ai_brain.get_images(search_term.strip()))
+            
+            threading.Thread(target=fetch_ai, daemon=True).start()
+            threading.Thread(target=fetch_imgs, daemon=True).start()
+            
+            # Wait for AI text first (usually faster or equal to image search)
+            answer, mode = res_queue.get()
+            
+            # Wait for images (don't block forever, max 3s)
+            try:
+                images = img_queue.get(timeout=3)
+            except:
+                images = []
+            
+            try:
+                eel.updateAnswer(answer, images)
+                self._ui_update("wake", f"AI ({mode})", "#00e5ff", "")
+            except:
+                pass
+            
+            # RESUME LISTENING: Set the mic event so the worker loop continues to the next command
+            self._mic_event.set()
+                
+            threading.Thread(target=lambda r=answer: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # YouTube search
+        yt = re.search(r'\b(youtube|you\s*tube)\b\s*(.*)', cmd)
+        if yt and yt.group(2).strip():
+            q = yt.group(2).strip()
+            url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(q)}"
+            self.open_url(url)
+            response = f"Searching YouTube for {q}."
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # Search
+        if "search" in cmd or "google" in cmd:
+            q = re.sub(r'\b(search|google)\b\s*','', cmd).strip()
+            if q:
+                url = f"https://www.google.com/search?q={urllib.parse.quote(q)}"
+                self.open_url(url)
+                response = f"Searching for {q}."
+                self._ui_update("wake", "LISTENING", "#00e5ff", response)
+                self._mic_event.set() # Resume listening
+                threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+                return
+
+        # Bare site name
+        url = self.get_url(cmd)
+        if url:
+            self.open_url(url)
+            response = f"Opening {cmd.title()}."
+            self._ui_update("wake", "LISTENING", "#00e5ff", response)
+            self._mic_event.set() # Resume listening
+            threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+            return
+
+        # Fallback Google
+        url = f"https://www.google.com/search?q={urllib.parse.quote(cmd)}"
+        self.open_url(url)
+        response = f"I've Googled that for you."
+        self._ui_update("wake", "LISTENING", "#00e5ff", response)
+        self._mic_event.set() # Resume listening
+        threading.Thread(target=lambda r=response: self._speak_and_resume(r), daemon=True).start()
+
+    # ── Activation sequence ───────────────────────
+    def _activate(self):
+        if self._active: return
+        self._active = True
+        try:
+            winsound.PlaySound("SystemHand", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except: pass
+        self._ui_update("wake", "Listening...", "#00e5ff", "How can I help you?")
+        threading.Thread(target=lambda: self.speak("How can I help you?"), daemon=True).start()
+        self._mic_event.set()
+
+    def _deactivate(self):
+        if not self._active: return
+        self._active = False
+        try:
+            winsound.PlaySound("SystemExit", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except: pass
+        self._ui_update("idle", "Waiting for you to say 'Hello Bro'...", "#9b66d6", "S.O.U.L. is resting")
+        self._mic_event.set() # Wake up the worker thread if it's trapped waiting for mic_event
+
+    # ── Background listening thread ───────────────
+    def _start_worker(self):
+        if self.mic is None:
+            self._ui_update("idle", "Microphone not found", "#f28b82", "Mic Error")
+            return
+        def worker():
+            # Initial calibration
+            if self.mic:
+                try:
+                    with self.mic as src:
+                        print("Calibrating for background noise...")
+                        self.r.adjust_for_ambient_noise(src, duration=1)
+                except: pass
+            
+            while not self._stop_event.is_set():
+                if not self._active:
+                    # Passive listening for "Hello Bro"
+                    try:
+                        if not self.mic: 
+                            time.sleep(1)
+                            continue
+                        with self.mic as src:
+                            audio = self.r.listen(src, timeout=5, phrase_time_limit=5)
+                        text = self.r.recognize_google(audio).lower().strip()
+                        if any(w in text for w in WAKE_WORDS):
+                            self._activate()
+                    except:
+                        continue
+                else:
+                    # Active: wait for mic_event to start next command
+                    self._mic_event.wait(timeout=30)
+                    self._mic_event.clear() # IMPORTANT: Clear the event so we don't loop infinitely
+                    if not self._active: continue
+                    
+                    self._ui_update("listening", "Listening for command...", "#f28b82", "Speak your command...")
+                    try:
+                        with self.mic as src:
+                            audio = self.r.listen(src, timeout=10, phrase_time_limit=15)
+                        
+                        self._ui_update("thinking", "Thinking...", "#fbbc04", "Processing...")
+                        cmd = self.r.recognize_google(audio, language="en-US").strip()
+                        if cmd:
+                            self.handle_command(cmd)
+                    except sr.WaitTimeoutError:
+                        self._ui_update("idle", "Timeout — Back to sleep", "#9b66d6", "S.O.U.L. is resting")
+                        self._deactivate()
+                    except sr.UnknownValueError:
+                        self._ui_update("wake", "I didn't catch that", "#f28b82", "Could you repeat?")
+                        self._deactivate()
+                    except Exception:
+                        self._deactivate()
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def run(self):
+        self._start_worker()
+        # Start Eel server and open the window
+        eel.start('index.html', size=(800, 720))
+
+# Create global instance
+app = SoulAssistant()
+
+# Expose functions to Javascript
+@eel.expose
+def manual_activate():
+    if not app._mic_ready: return
+    if app._active:
+        app._deactivate()
+    else:
+        app._activate()
+
+@eel.expose
+def quick_action(cmd):
+    if not app._active:
+        app._activate()
+        time.sleep(0.5)
+    app.handle_command(cmd)
+
+@eel.expose
+def manual_command(cmd):
+    if any(w in cmd.lower() for w in WAKE_WORDS):
+        app._activate()
+        return
+    if not app._active: return
+    app.handle_command(cmd)
+
+if __name__ == "__main__":
+    app.run()
