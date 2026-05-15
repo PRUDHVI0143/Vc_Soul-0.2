@@ -196,6 +196,19 @@ export default function SoulDashboard() {
                   <div className="w-16 h-16 rounded-full border-2 border-cyan-400 animate-spin" />
                 </div>
               </Widget>
+
+              <Widget title="LIVE WEATHER">
+                <div>
+                  <p className="text-purple-300 font-bold tracking-wider uppercase text-sm">{weatherData.location}</p>
+                  <div className="flex items-center gap-6 mt-4 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-transparent p-5 rounded-3xl border border-purple-500/20 shadow-[0_0_30px_rgba(138,43,226,0.15)] group hover:border-purple-500/40 transition-all">
+                    <div className="text-6xl group-hover:scale-110 transition-transform duration-300 animate-pulse">{weatherData.emoji}</div>
+                    <div>
+                      <h2 className="text-5xl font-black text-white tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{weatherData.temp}</h2>
+                      <p className="text-cyan-300 font-semibold text-lg mt-1 tracking-wide">{weatherData.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              </Widget>
             </div>
 
             {/* Center */}
@@ -286,19 +299,6 @@ export default function SoulDashboard() {
                   <StatCircle label="CPU" value="23%" />
                   <StatCircle label="RAM" value="45%" />
                   <StatCircle label="BAT" value="72%" />
-                </div>
-              </Widget>
-
-              <Widget title="LIVE WEATHER">
-                <div>
-                  <p className="text-purple-300 font-bold tracking-wider uppercase text-sm">{weatherData.location}</p>
-                  <div className="flex items-center gap-6 mt-4 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-transparent p-5 rounded-3xl border border-purple-500/20 shadow-[0_0_30px_rgba(138,43,226,0.15)] group hover:border-purple-500/40 transition-all">
-                    <div className="text-6xl group-hover:scale-110 transition-transform duration-300 animate-pulse">{weatherData.emoji}</div>
-                    <div>
-                      <h2 className="text-5xl font-black text-white tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">{weatherData.temp}</h2>
-                      <p className="text-cyan-300 font-semibold text-lg mt-1 tracking-wide">{weatherData.desc}</p>
-                    </div>
-                  </div>
                 </div>
               </Widget>
             </div>
