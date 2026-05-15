@@ -204,3 +204,22 @@ function updateSetting(key, val) {
     console.log(`Setting updated: ${key} = ${val}`);
 }
 
+function toggleLightDarkMode(mode) {
+    if (mode === 'light') {
+        document.body.classList.add('light-mode');
+        if (window.VANTA && window.VANTA.current) {
+            window.VANTA.current.setOptions({
+                backgroundColor: 0xf0f2f5,
+                color: 0x6366f1
+            });
+        }
+    } else {
+        document.body.classList.remove('light-mode');
+        if (window.VANTA && window.VANTA.current) {
+            window.VANTA.current.setOptions({
+                backgroundColor: 0x0a0a0c,
+                color: 0x8a2be2
+            });
+        }
+    }
+}

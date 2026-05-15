@@ -617,3 +617,129 @@ body {
     letter-spacing: 1px;
 }
 
+/* LIGHT MODE OVERRIDES */
+body.light-mode {
+    --panel-bg: rgba(255, 255, 255, 0.65);
+    --text-white: #0f172a;
+    --text-grey: #64748b;
+    --purple: #6366f1;
+    --cyan: #0284c7;
+}
+
+body.light-mode .weather-widget {
+    background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+body.light-mode .settings-modal-content {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,242,245,0.95));
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 40px rgba(99, 102, 241, 0.25);
+}
+
+body.light-mode .settings-header h2 {
+    color: #0f172a;
+    text-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+body.light-mode .settings-header {
+    border-bottom-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode .btn-close-settings {
+    background: rgba(0,0,0,0.05);
+    border-color: rgba(0,0,0,0.1);
+    color: #64748b;
+}
+
+body.light-mode .setting-item {
+    background: rgba(0,0,0,0.03);
+    border-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode .setting-item label {
+    color: #0f172a;
+}
+
+body.light-mode .setting-item select {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #0f172a;
+}
+
+body.light-mode .setting-item select option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+body.light-mode .btn-log {
+    background: rgba(2, 132, 199, 0.1);
+    border-color: rgba(2, 132, 199, 0.3);
+    color: #0284c7;
+}
+
+body.light-mode .settings-footer {
+    border-top-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode .suggestion-btn {
+    background-color: rgba(255,255,255,0.7);
+    color: #0f172a;
+    border-color: rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+body.light-mode .suggestion-btn:hover {
+    background-color: var(--purple);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+body.light-mode .input-container {
+    background-color: rgba(255,255,255,0.7);
+    border-color: rgba(0,0,0,0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+body.light-mode #command-input {
+    color: #0f172a;
+}
+
+body.light-mode #command-input::placeholder {
+    color: #64748b;
+}
+
+body.light-mode #status-text {
+    color: #475569;
+}
+
+body.light-mode .weather-temp {
+    color: #0f172a;
+    text-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
+
+body.light-mode .weather-title {
+    color: #0284c7;
+}
+
+body.light-mode .weather-desc {
+    color: #0284c7;
+}
+
+body.light-mode .weather-header {
+    border-bottom-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode .btn-settings {
+    background: linear-gradient(135deg, rgba(0,0,0,0.05), rgba(0,0,0,0.01));
+    border-color: rgba(2, 132, 199, 0.3);
+    color: #0f172a;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+body.light-mode .btn-settings:hover {
+    border-color: var(--purple);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+}
+

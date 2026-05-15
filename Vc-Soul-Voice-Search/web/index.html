@@ -85,6 +85,13 @@
             </div>
             <div class="settings-body">
                 <div class="setting-item">
+                    <label>UI Appearance Mode</label>
+                    <select id="setting-appearance" onchange="toggleLightDarkMode(this.value)">
+                        <option value="dark">Dark Mode (Cyber Deep)</option>
+                        <option value="light">Light Mode (Clean Pearl)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
                     <label>AI Intelligence Mode</label>
                     <select id="setting-ai-mode" onchange="updateSetting('ai_mode', this.value)">
                         <option value="hybrid">Hybrid (Online + Wikipedia Fallback)</option>
