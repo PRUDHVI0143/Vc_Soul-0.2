@@ -16,7 +16,6 @@ function updateState(state, statusText, dotColor, mainText) {
 
     // Only reset the display back to the orb when going to sleep (idle)
     if (state === "idle") {
-        resetDisplay();
         orb.classList.remove("active");
     } else {
         orb.classList.add("active");
@@ -62,6 +61,13 @@ function resetDisplay() {
         orb.style.display = "flex";
         mainText.style.display = "block";
         aiContainer.style.display = "none";
+    }
+}
+
+function dismissAnswer() {
+    resetDisplay();
+    if (window.eel && window.eel.manual_deactivate) {
+        eel.manual_deactivate()();
     }
 }
 

@@ -38,7 +38,8 @@
             </div>
             <div class="main-text-container">
                 <h1 id="main-text">How can I help?</h1>
-                <div id="ai-response-container" style="display: none;">
+                <div id="ai-response-container" style="display: none; cursor: pointer;" onclick="dismissAnswer()" title="Tap anywhere to dismiss">
+                    <div class="dismiss-hint" style="text-align: right; font-size: 11px; color: var(--cyan); margin-bottom: 8px; font-weight: bold; letter-spacing: 1px;">✖ TAP ANYWHERE TO DISMISS</div>
                     <p id="ai-text"></p>
                     <div id="ai-images" class="ai-images-grid"></div>
                 </div>

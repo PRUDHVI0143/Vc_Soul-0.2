@@ -116,7 +116,7 @@ class SoulAIBrain:
         if ONLINE_AI_AVAILABLE and self.gemini_model:
             try:
                 # Giving context about the current date for "Recent Info"
-                prompt = f"System: The current date and time is {current_time}. You are S.O.U.L, a helpful AI voice assistant. Give a concise, conversational answer to this query in 1 to 3 sentences, ensuring your info is up to date: {query}"
+                prompt = f"System: The current date and time is {current_time}. You are S.O.U.L, a highly advanced, intelligent AI voice assistant. Provide a clear, thorough, and engaging conversational explanation to this query, explaining the key details beautifully so the user fully understands: {query}"
                 response = self.gemini_model.generate_content(prompt)
                 
                 if response.candidates and response.candidates[0].content.parts:
@@ -261,7 +261,7 @@ class SoulAssistant:
                     print("TTS Error:", e)
             
             if auto_sleep:
-                time.sleep(8) # Increased auto-sleep to 8 seconds for more voice time
+                time.sleep(15) # Increased auto-sleep to 15 seconds to allow full voice over explanation
                 if self._active:
                     self._deactivate()
 
@@ -733,6 +733,11 @@ def manual_activate():
         app._deactivate()
     else:
         app._activate()
+
+@eel.expose
+def manual_deactivate():
+    if app._active:
+        app._deactivate()
 
 @eel.expose
 def quick_action(cmd):
