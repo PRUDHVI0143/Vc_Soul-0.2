@@ -211,6 +211,11 @@ class SoulAssistant:
                 if self._active:
                     self._deactivate()
 
+    def clean_for_speech(self, text):
+        cleaned = re.sub(r'[*#_~`\[\]()]', '', text)
+        cleaned = re.sub(r'[^\w\s.,!?\'"-]', '', cleaned)
+        return cleaned.strip()
+
     def speak(self, text):
         self.tts_queue.put((text, False))
 
@@ -521,8 +526,9 @@ class SoulAssistant:
             
             # RESUME LISTENING: Set the mic event so the worker loop continues to the next command
             self._mic_event.set()
-                
-            threading.Thread(target=lambda r=answer: self._speak_and_resume(r), daemon=True).start()
+            
+            clean_ans = self.clean_for_speech(answer)
+            threading.Thread(target=lambda r=clean_ans: self._speak_and_resume(r), daemon=True).start()
             return
 
         # YouTube search
@@ -576,6 +582,14 @@ class SoulAssistant:
         except: pass
         self._ui_update("wake", "Listening...", "#00e5ff", "How can I help you?")
         threading.Thread(target=lambda: self.speak("How can I help you?"), daemon=True).start()
+        self._mic_event.set()
+
+    def _activate_silent(self):
+        if self._active: return
+        self._active = True
+        try: winsound.PlaySound("SystemHand", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except: pass
+        self._ui_update("wake", "Processing...", "#00e5ff", "Analyzing command...")
         self._mic_event.set()
 
     def _deactivate(self):
@@ -668,20 +682,18 @@ def manual_activate():
 
 @eel.expose
 def quick_action(cmd):
-    # ✅ FIX: Always activate first, then handle — no silent failure
     if not app._active:
-        app._activate()
+        app._activate_silent()
         time.sleep(0.3)
     app.handle_command(cmd)
 
 @eel.expose
 def manual_command(cmd):
-    # ✅ FIX: Wake words activate; any other typed command auto-activates if idle
     if any(w in cmd.lower() for w in WAKE_WORDS):
         app._activate()
         return
     if not app._active:
-        app._activate()  # Auto-activate when user types a command
+        app._activate_silent()  # Auto-activate silently when user types a command
         time.sleep(0.3)
     app.handle_command(cmd)
 
