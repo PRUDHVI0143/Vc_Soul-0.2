@@ -85,7 +85,20 @@ document.getElementById('command-input').addEventListener('keypress', function (
 });
 
 // Setup Initial state on load
+function initClock() {
+    function update() {
+        const now = new Date();
+        const timeEl = document.getElementById("live-time");
+        const dateEl = document.getElementById("live-date");
+        if (timeEl) timeEl.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        if (dateEl) dateEl.innerText = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+    update();
+    setInterval(update, 1000);
+}
+
 window.onload = () => {
+    initClock();
     VANTA.NET({
         el: "#vanta-bg",
         mouseControls: true,
@@ -102,3 +115,4 @@ window.onload = () => {
         spacing: 18.00
     });
 };
+

@@ -5,6 +5,9 @@ export default function SoulDashboard() {
   const [uiState, setUiState] = useState('idle'); // idle, listening, thinking, wake
   const [statusText, setStatusText] = useState('Waiting for you to say "Hello Bro"...');
   const [mainText, setMainText] = useState('How can I help you today?');
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+
   const updateState = (state, status, color, main) => {
     if (state) setUiState(state);
     if (status) setStatusText(status);
@@ -31,6 +34,15 @@ export default function SoulDashboard() {
     return () => {
       window.reactUpdateState = null;
     };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+      setCurrentDate(now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+    }, 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleMicClick = () => {
@@ -114,8 +126,8 @@ export default function SoulDashboard() {
 
             <div className="flex items-center gap-5">
               <div className="text-right">
-                <p className="text-cyan-300">10:42 PM</p>
-                <p className="text-sm text-gray-400">May 14, 2026</p>
+                <p className="text-cyan-300 font-mono text-lg">{currentTime}</p>
+                <p className="text-sm text-gray-400">{currentDate}</p>
               </div>
 
               <div className="px-5 py-2 rounded-full bg-green-500/20 border border-green-400/30 flex items-center gap-2">

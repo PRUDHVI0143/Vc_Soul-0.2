@@ -78,6 +78,29 @@ body {
     letter-spacing: 1px;
 }
 
+.time-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#live-time {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--cyan);
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+#live-date {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-grey);
+    margin-top: 2px;
+}
+
+
 .btn-chat {
     background: transparent;
     border: none;
