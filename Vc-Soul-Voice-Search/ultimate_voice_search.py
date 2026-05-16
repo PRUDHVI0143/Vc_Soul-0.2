@@ -126,7 +126,17 @@ class SoulAIBrain:
                     print("DEBUG: Gemini blocked response")
             except Exception as e:
                 print(f"DEBUG: Online AI unavailable: {e}")
-                # Smart Online Fallback: Wikipedia Knowledge Search
+                # Try backup Gemini model (gemini-1.5-flash) if 2.5 hits rate limit
+                try:
+                    backup_model = genai.GenerativeModel('gemini-1.5-flash')
+                    response = backup_model.generate_content(prompt)
+                    if response.candidates and response.candidates[0].content.parts:
+                        text = response.text.replace("*", "").replace("#", "").strip()
+                        return text, "Online Gemini (Backup)"
+                except Exception as backup_e:
+                    print(f"DEBUG: Backup Gemini also unavailable: {backup_e}")
+
+                # Smart Online Fallback 1: Wikipedia Knowledge Search
                 try:
                     search_term = query
                     for w in ["who is", "what is", "where is", "tell me about", "why is", "how to", "explain"]:
@@ -144,7 +154,35 @@ class SoulAIBrain:
                                 return summary, "Online Knowledge Base"
                 except Exception as wiki_e:
                     print(f"DEBUG: Wikipedia fallback failed: {wiki_e}")
-        
+
+                # Smart Online Fallback 2: DuckDuckGo Fuzzy Search (Perfect for misspelled queries like 'data stucher algorithem')
+                try:
+                    ddg_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+                    ddg_res = requests.get(ddg_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}, timeout=4).text
+                    snippet_match = re.search(r'<a class="result__snippet[^>]*>(.*?)</a>', ddg_res, re.DOTALL)
+                    if snippet_match:
+                        clean_snippet = re.sub(r'<[^>]+>', '', snippet_match.group(1)).strip()
+                        clean_snippet = clean_snippet.replace('&quot;', '"').replace('&amp;', '&').replace('&#x27;', "'").replace('&lt;', '<').replace('&gt;', '>')
+                        if clean_snippet:
+                            return clean_snippet, "Web Search Fallback"
+                except Exception as ddg_e:
+                    print(f"DEBUG: DuckDuckGo fallback failed: {ddg_e}")
+
+        # Lightweight Built-in Knowledge Base Fallback while Phi-3 is loading
+        query_clean = query.lower().strip()
+        common_knowledge = {
+            "data stucher": "A data structure is a specialized format for organizing, processing, retrieving and storing data in a computer so it can be accessed and modified efficiently.",
+            "data structure": "A data structure is a specialized format for organizing, processing, retrieving and storing data in a computer so it can be accessed and modified efficiently.",
+            "algorithm": "An algorithm is a finite sequence of rigorous instructions used to solve a class of specific problems or to perform a computation.",
+            "artificial intelligence": "Artificial intelligence is the simulation of human intelligence processes by machines, especially computer systems.",
+            "python": "Python is a high-level, general-purpose programming language known for its readability and comprehensive standard library.",
+            "quantum": "Quantum mechanics is a fundamental theory in physics that provides a description of the physical properties of nature at the scale of atoms and subatomic particles.",
+            "thermodynamics": "Thermodynamics is a branch of physics that deals with heat, work, and temperature, and their relation to energy, radiation, and physical properties of matter."
+        }
+        for k, v in common_knowledge.items():
+            if k in query_clean:
+                return v, "Built-in Knowledge Base"
+
         # Fallback if offline or API error
         if not self.offline_ready:
             # Start background loading if not already
