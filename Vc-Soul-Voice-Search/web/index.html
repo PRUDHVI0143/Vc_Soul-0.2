@@ -27,6 +27,7 @@
                 <div id="live-date">-- --, ----</div>
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn-history" onclick="toggleHistoryModal()" title="Search History" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 18px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">📜</button>
                 <button class="btn-refresh" onclick="refreshAssistant()" title="Refresh Assistant" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 18px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🔄</button>
                 <button class="btn-chat" onclick="quickAction('hello bro')" title="Personal Chat">🪽</button>
             </div>
@@ -149,6 +150,25 @@
             </div>
             <div class="settings-footer">
                 <p>S.O.U.L. v0.2 — System of Universal Listening</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal (Glassmorphic Popup) -->
+    <div id="history-modal" class="settings-modal" style="display: none;">
+        <div class="settings-modal-content" style="max-width: 600px;">
+            <div class="settings-header">
+                <h2>📜 VOICE SEARCH HISTORY</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button onclick="clearSearchHistory()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">Clear History</button>
+                    <button class="btn-close-settings" onclick="toggleHistoryModal()">×</button>
+                </div>
+            </div>
+            <div class="settings-body" id="history-list" style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 8px;">
+                <p style="color: #888; font-size: 14px; text-align: center; margin-top: 20px;">No search history found.</p>
+            </div>
+            <div class="settings-footer">
+                <p>S.O.U.L. v0.2 — Search & Interaction Log</p>
             </div>
         </div>
     </div>

@@ -178,7 +178,9 @@ window.onload = () => {
         maxDistance: 22.00,
         spacing: 18.00
     });
+    setTimeout(loadInitialState, 1000);
 };
+
 
 // Settings Modal & Control Functions
 function toggleSettingsModal() {
@@ -265,5 +267,96 @@ function toggleLightDarkMode(mode) {
                 color: 0x8a2be2
             });
         }
+    }
+}
+
+function toggleHistoryModal() {
+    const modal = document.getElementById("history-modal");
+    if (modal) {
+        if (modal.style.display === "none") {
+            modal.style.display = "flex";
+            loadSearchHistory();
+        } else {
+            modal.style.display = "none";
+        }
+    }
+}
+
+async function loadSearchHistory() {
+    const listEl = document.getElementById("history-list");
+    if (listEl && window.eel && window.eel.get_search_history) {
+        try {
+            let history = await eel.get_search_history()();
+            listEl.innerHTML = "";
+            if (!history || history.length === 0) {
+                listEl.innerHTML = `<p style="color: #888; font-size: 14px; text-align: center; margin-top: 20px;">No search history found.</p>`;
+                return;
+            }
+            history.forEach(item => {
+                let div = document.createElement("div");
+                div.style.background = "rgba(0,0,0,0.4)";
+                div.style.border = "1px solid rgba(0, 229, 255, 0.2)";
+                div.style.padding = "10px 14px";
+                div.style.borderRadius = "10px";
+                div.style.display = "flex";
+                div.style.flexDirection = "column";
+                div.style.gap = "4px";
+                
+                let header = document.createElement("div");
+                header.style.display = "flex";
+                header.style.justifyContent = "space-between";
+                header.style.fontSize = "11px";
+                header.style.color = "#888";
+                header.innerHTML = `<span>🏷️ ${item.type}</span><span>🕒 ${item.time}</span>`;
+                
+                let query = document.createElement("div");
+                query.style.fontSize = "13px";
+                query.style.color = "#fff";
+                query.style.fontWeight = "600";
+                query.innerText = item.query;
+                
+                div.appendChild(header);
+                div.appendChild(query);
+                listEl.appendChild(div);
+            });
+        } catch(e) { console.error("History load error", e); }
+    }
+}
+
+async function clearSearchHistory() {
+    if (window.eel && window.eel.clear_search_history) {
+        await eel.clear_search_history()();
+        const listEl = document.getElementById("history-list");
+        if (listEl) {
+            listEl.innerHTML = `<p style="color: #888; font-size: 14px; text-align: center; margin-top: 20px;">Search history cleared.</p>`;
+        }
+        alert("Search history has been permanently cleared!");
+    }
+}
+
+async function loadInitialState() {
+    if (window.eel && window.eel.get_initial_settings) {
+        try {
+            let settings = await eel.get_initial_settings()();
+            if (settings) {
+                if (settings.appearance) {
+                    document.getElementById("setting-appearance").value = settings.appearance;
+                    toggleLightDarkMode(settings.appearance);
+                }
+                if (settings.voice) {
+                    document.getElementById("setting-voice").value = settings.voice;
+                }
+                if (settings.elevenlabs_key) {
+                    document.getElementById("setting-eleven-key").value = settings.elevenlabs_key;
+                }
+                if (settings.ai_mode) {
+                    document.getElementById("setting-ai-mode").value = settings.ai_mode;
+                }
+                if (settings.theme) {
+                    document.getElementById("setting-theme").value = settings.theme;
+                    updateTheme(settings.theme);
+                }
+            }
+        } catch(e) { console.error("Settings load error", e); }
     }
 }

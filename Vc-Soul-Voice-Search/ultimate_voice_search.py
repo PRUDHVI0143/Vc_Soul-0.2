@@ -195,6 +195,68 @@ class SoulAssistant:
         self._mic_event = threading.Event()
         self._stop_event = threading.Event()
 
+        # Persistence Storage
+        self.settings_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "soul_settings.json")
+        self.history_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "soul_history.json")
+        self.settings = {
+            "voice": "offline", "elevenlabs_key": "", "custom_wake_word": "",
+            "appearance": "dark", "ai_mode": "hybrid", "theme": "violet"
+        }
+        self.history = []
+        self._load_settings()
+        self._load_history()
+
+    def _load_settings(self):
+        global WAKE_WORDS
+        try:
+            if os.path.exists(self.settings_file):
+                import json
+                with open(self.settings_file, "r") as f:
+                    data = json.load(f)
+                    self.settings.update(data)
+                self.selected_voice = self.settings.get("voice", "offline")
+                self.elevenlabs_key = self.settings.get("elevenlabs_key", "")
+                cw = self.settings.get("custom_wake_word", "").strip().lower()
+                if cw and cw not in WAKE_WORDS:
+                    WAKE_WORDS.append(cw)
+        except Exception as e:
+            print("Failed to load settings:", e)
+
+    def _save_settings(self):
+        try:
+            import json
+            with open(self.settings_file, "w") as f:
+                json.dump(self.settings, f, indent=4)
+        except Exception as e:
+            print("Failed to save settings:", e)
+
+    def _load_history(self):
+        try:
+            if os.path.exists(self.history_file):
+                import json
+                with open(self.history_file, "r") as f:
+                    self.history = json.load(f)
+        except Exception as e:
+            print("Failed to load history:", e)
+
+    def _save_history(self):
+        try:
+            import json
+            with open(self.history_file, "w") as f:
+                json.dump(self.history, f, indent=4)
+        except Exception as e:
+            print("Failed to save history:", e)
+
+    def add_history(self, query, qtype="AI Knowledge"):
+        try:
+            current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.history.insert(0, {"time": current_time, "query": query, "type": qtype})
+            if len(self.history) > 100:  # keep max 100 items
+                self.history = self.history[:100]
+            self._save_history()
+        except Exception as e:
+            print("Failed to add history:", e)
+
     # ── State Updates (Bridged to JS) ────────────────
     def _ui_update(self, state, status_text=None, dot_color=None, main_text=None):
         try:
@@ -545,6 +607,7 @@ class SoulAssistant:
         # 1. Check strict known app mappings
         for app_name, app_cmd in local_apps.items():
             if f"open {app_name}" in cmd or f"launch {app_name}" in cmd or (app_name in cmd and len(cmd.split()) <= 2):
+                self.add_history(cmd, f"App: {app_name.title()}")
                 subprocess.run(app_cmd, shell=True)
                 response = f"Opening {app_name} for you."
                 self._ui_update("wake", "LISTENING", "#00e5ff", response)
@@ -558,6 +621,7 @@ class SoulAssistant:
             site = self.normalize(" ".join(words[1:]))
             url = self.get_url(site)
             if url:
+                self.add_history(cmd, f"Web: {site.title()}")
                 self.open_url(url)
                 response = f"Opening {site.title()}."
                 self._ui_update("wake", "LISTENING", "#00e5ff", response)
@@ -570,6 +634,7 @@ class SoulAssistant:
                 try:
                     res = subprocess.run(f"start {target}", shell=True, capture_output=True)
                     if res.returncode == 0:
+                        self.add_history(cmd, f"App: {target.title()}")
                         response = f"Attempting to open {site}."
                         self._ui_update("wake", "LISTENING", "#00e5ff", response)
                         self._mic_event.set() # Resume listening
@@ -579,9 +644,10 @@ class SoulAssistant:
                     pass
 
         # AI Knowledge Questions (what, who, why, where, how)
-        ai_triggers = ["what", "who", "why", "where", "how", "tell"]
+        ai_triggers = ["what", "who", "why", "where", "how", "tell", "explain"]
         words = cmd.split()
         if words and words[0] in ai_triggers:
+            self.add_history(cmd, "AI Knowledge")
             self._ui_update("thinking", "AI Brain Processing...", "#fbbc04", "Let me think...")
             
             # Run AI generation and Image fetching in parallel to save time
@@ -629,6 +695,7 @@ class SoulAssistant:
         yt = re.search(r'\b(youtube|you\s*tube)\b\s*(.*)', cmd)
         if yt and yt.group(2).strip():
             q = yt.group(2).strip()
+            self.add_history(cmd, "YouTube Search")
             url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(q)}"
             self.open_url(url)
             response = f"Searching YouTube for {q}."
@@ -641,6 +708,7 @@ class SoulAssistant:
         if "search" in cmd or "google" in cmd:
             q = re.sub(r'\b(search|google)\b\s*','', cmd).strip()
             if q:
+                self.add_history(cmd, "Google Search")
                 url = f"https://www.google.com/search?q={urllib.parse.quote(q)}"
                 self.open_url(url)
                 response = f"Searching for {q}."
@@ -652,6 +720,7 @@ class SoulAssistant:
         # Bare site name
         url = self.get_url(cmd)
         if url:
+            self.add_history(cmd, f"Web: {cmd.title()}")
             self.open_url(url)
             response = f"Opening {cmd.title()}."
             self._ui_update("wake", "LISTENING", "#00e5ff", response)
@@ -799,6 +868,8 @@ def manual_command(cmd):
 @eel.expose
 def update_setting_py(key, val):
     global WAKE_WORDS
+    app.settings[key] = val
+    app._save_settings()
     if key == "voice":
         app.selected_voice = val
         print(f"DEBUG: Voice switched to {val}")
@@ -811,6 +882,20 @@ def update_setting_py(key, val):
             WAKE_WORDS.append(val)
         print(f"DEBUG: Custom wake word added: '{val}'. Active Wake Words: {WAKE_WORDS}")
         app._ui_update("idle", f"Wake word updated: '{val}'", "#22c55e", f"Listening for '{val}'")
+
+@eel.expose
+def get_initial_settings():
+    return app.settings
+
+@eel.expose
+def get_search_history():
+    return app.history
+
+@eel.expose
+def clear_search_history():
+    app.history = []
+    app._save_history()
+    return True
 
 @eel.expose
 def get_live_weather(lat=None, lon=None):
