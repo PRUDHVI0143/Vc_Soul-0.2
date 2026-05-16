@@ -57,7 +57,7 @@ except ImportError:
 try:
     import pygame
     PYGAME_AVAILABLE = True
-    pygame.mixer.init()
+    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=4096)
 except ImportError:
     PYGAME_AVAILABLE = False
 
@@ -257,18 +257,27 @@ class SoulAssistant:
                     
                     try:
                         if PYGAME_AVAILABLE:
-                            pygame.mixer.music.load(temp_mp3)
-                            pygame.mixer.music.play()
-                            while pygame.mixer.music.get_busy():
-                                time.sleep(0.1)
-                            pygame.mixer.music.unload()
-                        else:
+                            try:
+                                pygame.mixer.music.load(temp_mp3)
+                                pygame.mixer.music.play()
+                                while pygame.mixer.music.get_busy():
+                                    time.sleep(0.1)
+                                pygame.mixer.music.unload()
+                                eleven_played = True
+                            except Exception as pg_e:
+                                print("Pygame playback error, trying MCI:", pg_e)
+                        
+                        if not eleven_played:
                             import ctypes
-                            ctypes.windll.winmm.mciSendStringW(f'close temp_audio', None, 0, None)
-                            ctypes.windll.winmm.mciSendStringW(f'open "{temp_mp3}" alias temp_audio', None, 0, None)
-                            ctypes.windll.winmm.mciSendStringW('play temp_audio wait', None, 0, None)
+                            clean_path = temp_mp3.replace('\\', '/')
                             ctypes.windll.winmm.mciSendStringW('close temp_audio', None, 0, None)
-                        eleven_played = True
+                            res = ctypes.windll.winmm.mciSendStringW(f'open "{clean_path}" alias temp_audio', None, 0, None)
+                            if res == 0:
+                                ctypes.windll.winmm.mciSendStringW('play temp_audio wait', None, 0, None)
+                                ctypes.windll.winmm.mciSendStringW('close temp_audio', None, 0, None)
+                                eleven_played = True
+                            else:
+                                raise Exception(f"MCI Error code {res}")
                     except Exception as play_e:
                         print("Audio playback error, falling back to pyttsx3:", play_e)
             
