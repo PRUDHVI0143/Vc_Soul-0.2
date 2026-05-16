@@ -141,7 +141,7 @@ function initWeather() {
                     if (document.getElementById("weather-modal-temp")) document.getElementById("weather-modal-temp").innerText = res.temp;
                     if (document.getElementById("weather-modal-desc")) document.getElementById("weather-modal-desc").innerText = res.desc;
                     if (document.getElementById("weather-modal-rf")) document.getElementById("weather-modal-rf").innerText = res.feels_like || res.temp;
-                    if (document.getElementById("weather-modal-rfs")) document.getElementById("weather-modal-rfs").innerText = res.feels_like || res.temp;
+                    if (document.getElementById("weather-modal-rfs")) document.getElementById("weather-modal-rfs").innerText = res.feels_like_shade || res.feels_like || res.temp;
                     if (document.getElementById("weather-modal-uv")) document.getElementById("weather-modal-uv").innerText = res.uv_index || "0.8 (Low)";
                     if (document.getElementById("weather-modal-dp")) document.getElementById("weather-modal-dp").innerText = res.dew_point || "15°C";
                     if (document.getElementById("weather-modal-wind")) document.getElementById("weather-modal-wind").innerText = res.wind_speed || "NNE 9 km/h";

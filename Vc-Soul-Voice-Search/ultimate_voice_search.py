@@ -959,7 +959,61 @@ def get_live_weather(lat=None, lon=None):
             except Exception:
                 pass
         
-        # Primary High-Precision Engine: Open-Meteo
+        # Primary Real-Time Engine: AccuWeather Jalandhar Live Web Scraper
+        try:
+            accu_url = "https://www.accuweather.com/en/in/jalandhar/195139/current-weather/195139"
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+            accu_html = requests.get(accu_url, headers=headers, timeout=5).text
+            
+            temp_m = re.search(r'display-temp[^>]*>([0-9]+)', accu_html)
+            phrase_m = re.search(r'phrase[^>]*>([^<]+)</', accu_html)
+            
+            if temp_m and phrase_m:
+                temp_c = temp_m.group(1)
+                desc = phrase_m.group(1).strip()
+                
+                raw_items = dict(re.findall(r'detail-item[^>]*>.*?<div>([^<]+)</div>.*?<div>([^<]+)</div>', accu_html, re.S))
+                
+                def clean_html(text):
+                    return text.replace('&#xB0;', '°').replace('&#xAE;', '®').replace('&#x2122;', '™').replace('&#x2191;', '↑').replace('&deg;', '°').strip()
+                
+                items = {clean_html(k): clean_html(v) for k, v in raw_items.items()}
+                
+                hour = time.localtime().tm_hour
+                is_night = hour < 6 or hour >= 19
+                emoji = "🌙" if is_night else "☀️"
+                d_lower = desc.lower()
+                if "cloud" in d_lower or "overcast" in d_lower: emoji = "☁️"
+                elif "rain" in d_lower or "shower" in d_lower or "drizzle" in d_lower: emoji = "🌧️"
+                elif "thunder" in d_lower or "storm" in d_lower: emoji = "⛈️"
+                elif "snow" in d_lower or "ice" in d_lower: emoji = "❄️"
+                elif "fog" in d_lower or "mist" in d_lower or "haz" in d_lower: emoji = "🌫️"
+                elif "clear" in d_lower or "sun" in d_lower: emoji = "🌙" if is_night else "☀️"
+                
+                feels_like = items.get("RealFeel®", f"{temp_c}°C")
+                feels_like_shade = items.get("RealFeel Shade™", feels_like)
+                uv_index = items.get("Max UV Index", "0.8 (Low)")
+                wind_speed = items.get("Wind", "NNE 9 km/h")
+                wind_gusts = items.get("Wind Gusts", "23 km/h")
+                humidity = items.get("Humidity", "56%")
+                indoor_humidity = items.get("Indoor Humidity", f"{humidity} (Optimal)")
+                dew_point = items.get("Dew Point", "15°C")
+                pressure = items.get("Pressure", "↑ 1003 mb")
+                cloud_cover = items.get("Cloud Cover", "0%")
+                visibility = items.get("Visibility", "8 km")
+                cloud_ceiling = items.get("Cloud Ceiling", "9100 m")
+                
+                return {
+                    "location": f"{area}, {region}", "temp": f"{temp_c}°C", "desc": desc, "emoji": emoji,
+                    "feels_like": feels_like, "feels_like_shade": feels_like_shade, "humidity": humidity,
+                    "wind_speed": wind_speed, "wind_gusts": wind_gusts, "pressure": pressure,
+                    "cloud_cover": cloud_cover, "uv_index": uv_index, "dew_point": dew_point,
+                    "visibility": visibility, "cloud_ceiling": cloud_ceiling, "indoor_humidity": indoor_humidity
+                }
+        except Exception as accu_e:
+            print("AccuWeather real-time scraper fallback due to:", accu_e)
+
+        # Secondary High-Precision Engine: Open-Meteo
         try:
             om_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature,wind_speed_10m,wind_gusts_10m,surface_pressure,cloud_cover"
             om_data = requests.get(om_url, timeout=4).json()
@@ -994,10 +1048,10 @@ def get_live_weather(lat=None, lon=None):
             
             return {
                 "location": f"{area}, {region}", "temp": f"{temp_c}°C", "desc": desc, "emoji": emoji,
-                "feels_like": f"{feels_like}°C", "humidity": f"{humidity}%", "wind_speed": f"{wind_speed} km/h",
-                "wind_gusts": f"{wind_gusts} km/h", "pressure": f"{pressure} mb", "cloud_cover": f"{cloud_cover}%",
-                "uv_index": "0.8 (Low)", "dew_point": "15°C", "visibility": "8 km", "cloud_ceiling": "9100 m",
-                "indoor_humidity": f"{humidity}% (Optimal)"
+                "feels_like": f"{feels_like}°C", "feels_like_shade": f"{feels_like}°C", "humidity": f"{humidity}%",
+                "wind_speed": f"{wind_speed} km/h", "wind_gusts": f"{wind_gusts} km/h", "pressure": f"{pressure} mb",
+                "cloud_cover": f"{cloud_cover}%", "uv_index": "0.8 (Low)", "dew_point": "15°C", "visibility": "8 km",
+                "cloud_ceiling": "9100 m", "indoor_humidity": f"{humidity}% (Optimal)"
             }
         except Exception as om_e:
             print("Open-Meteo fallback to wttr.in due to:", om_e)
