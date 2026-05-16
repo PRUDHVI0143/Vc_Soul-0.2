@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "time": "2026-05-16 06:19:52",
+        "query": "open camera",
+        "type": "App: Camera"
+    }
+]
