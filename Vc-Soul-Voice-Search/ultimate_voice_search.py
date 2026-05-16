@@ -241,11 +241,20 @@ class SoulAssistant:
                             "4O1sYUnmtThcBoSBrri7": "com.au"   # David -> Australian Neural
                         }
                         tld = tld_map.get(self.selected_voice, "com")
-                        g_url = f"https://translate.google.{tld}/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={urllib.parse.quote(text[:200])}"
-                        g_res = requests.get(g_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
-                        if g_res.status_code == 200:
-                            audio_content = g_res.content
-                            print("DEBUG: Successfully fetched Google Neural AI Voice fallback")
+                        
+                        import textwrap
+                        chunks = textwrap.wrap(text, width=180)
+                        combined_audio = b""
+                        
+                        for chunk in chunks:
+                            g_url = f"https://translate.google.{tld}/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={urllib.parse.quote(chunk)}"
+                            g_res = requests.get(g_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=5)
+                            if g_res.status_code == 200:
+                                combined_audio += g_res.content
+                        
+                        if combined_audio:
+                            audio_content = combined_audio
+                            print("DEBUG: Successfully fetched and combined Google Neural AI Voice fallback for full explanation")
                     except Exception as g_e:
                         print("Google Neural Fallback error:", g_e)
 
