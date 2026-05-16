@@ -189,8 +189,8 @@ window.onload = () => {
         minWidth: 200.00,
         scale: 1.00,
         scaleMobile: 1.00,
-        color: 0x8a2be2, // Purple dots/lines to match aesthetic
-        backgroundColor: 0x0a0a0c, // Deep dark background
+        color: 0xf4f4f4,        // Silver/White lines
+        backgroundColor: 0x000000, // Pure black background
         points: 12.00,
         maxDistance: 22.00,
         spacing: 18.00
@@ -272,16 +272,16 @@ function toggleLightDarkMode(mode) {
         document.body.classList.add('light-mode');
         if (window.VANTA && window.VANTA.current) {
             window.VANTA.current.setOptions({
-                backgroundColor: 0xf0f2f5,
-                color: 0x6366f1
+                backgroundColor: 0xffffff, // Pure white background
+                color: 0x111111 // Dark charcoal lines
             });
         }
     } else {
         document.body.classList.remove('light-mode');
         if (window.VANTA && window.VANTA.current) {
             window.VANTA.current.setOptions({
-                backgroundColor: 0x0a0a0c,
-                color: 0x8a2be2
+                backgroundColor: 0x000000, // Pure black background
+                color: 0xf4f4f4 // Silver/White lines
             });
         }
     }
