@@ -617,9 +617,10 @@ body {
     letter-spacing: 1px;
 }
 
-/* LIGHT MODE OVERRIDES */
+/* LIGHT MODE PREMIUM OVERRIDES (Clean Pearl Aesthetic) */
 body.light-mode {
-    --panel-bg: rgba(255, 255, 255, 0.65);
+    --bg-dark: #f0f2f5;
+    --panel-bg: rgba(255, 255, 255, 0.75);
     --text-white: #0f172a;
     --text-grey: #64748b;
     --purple: #6366f1;
@@ -627,30 +628,37 @@ body.light-mode {
 }
 
 body.light-mode .weather-widget {
-    background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+    background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6));
     border-color: rgba(99, 102, 241, 0.3);
     box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 body.light-mode .settings-modal-content {
-    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,242,245,0.95));
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,242,245,0.98));
     border-color: rgba(99, 102, 241, 0.4);
     box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 40px rgba(99, 102, 241, 0.25);
+    color: #0f172a;
 }
 
-body.light-mode .settings-header h2 {
-    color: #0f172a;
-    text-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+body.light-mode .settings-header h2,
+body.light-mode .settings-header span {
+    color: #0f172a !important;
+    text-shadow: none !important;
 }
 
 body.light-mode .settings-header {
-    border-bottom-color: rgba(0,0,0,0.1);
+    border-bottom-color: rgba(0,0,0,0.1) !important;
 }
 
 body.light-mode .btn-close-settings {
     background: rgba(0,0,0,0.05);
     border-color: rgba(0,0,0,0.1);
     color: #64748b;
+}
+
+body.light-mode .btn-close-settings:hover {
+    background: #ef4444 !important;
+    color: #fff !important;
 }
 
 body.light-mode .setting-item {
@@ -662,7 +670,8 @@ body.light-mode .setting-item label {
     color: #0f172a;
 }
 
-body.light-mode .setting-item select {
+body.light-mode .setting-item select,
+body.light-mode .setting-item input {
     background: rgba(255,255,255,0.9);
     border-color: rgba(99, 102, 241, 0.4);
     color: #0f172a;
@@ -684,9 +693,9 @@ body.light-mode .settings-footer {
 }
 
 body.light-mode .suggestion-btn {
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255,255,255,0.8);
     color: #0f172a;
-    border-color: rgba(0,0,0,0.1);
+    border-color: rgba(0,0,0,0.15);
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
@@ -697,8 +706,8 @@ body.light-mode .suggestion-btn:hover {
 }
 
 body.light-mode .input-container {
-    background-color: rgba(255,255,255,0.7);
-    border-color: rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.85);
+    border-color: rgba(0,0,0,0.15);
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
@@ -710,36 +719,74 @@ body.light-mode #command-input::placeholder {
     color: #64748b;
 }
 
-body.light-mode #status-text {
-    color: #475569;
+body.light-mode #status-text,
+body.light-mode #live-time,
+body.light-mode #live-date,
+body.light-mode #main-text,
+body.light-mode #ai-text {
+    color: #0f172a !important;
+    text-shadow: none !important;
 }
 
-body.light-mode .weather-temp {
-    color: #0f172a;
-    text-shadow: 0 0 12px rgba(0,0,0,0.1);
+body.light-mode #ai-question-box {
+    background: rgba(99, 102, 241, 0.1) !important;
+    border-left-color: var(--purple) !important;
+    color: #0f172a !important;
+    text-shadow: none !important;
 }
 
-body.light-mode .weather-title {
-    color: #0284c7;
-}
-
-body.light-mode .weather-desc {
-    color: #0284c7;
+body.light-mode .weather-temp,
+body.light-mode .weather-title,
+body.light-mode .weather-desc,
+body.light-mode .weather-loc {
+    color: #0f172a !important;
+    text-shadow: none !important;
 }
 
 body.light-mode .weather-header {
     border-bottom-color: rgba(0,0,0,0.1);
 }
 
-body.light-mode .btn-settings {
-    background: linear-gradient(135deg, rgba(0,0,0,0.05), rgba(0,0,0,0.01));
-    border-color: rgba(2, 132, 199, 0.3);
-    color: #0f172a;
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+body.light-mode .btn-settings,
+body.light-mode .btn-history,
+body.light-mode .btn-refresh,
+body.light-mode .btn-chat {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
 }
 
-body.light-mode .btn-settings:hover {
-    border-color: var(--purple);
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+body.light-mode .btn-settings:hover,
+body.light-mode .btn-history:hover,
+body.light-mode .btn-refresh:hover,
+body.light-mode .btn-chat:hover {
+    border-color: var(--purple) !important;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3) !important;
+    background: #fff !important;
+}
+
+/* WEATHER & HISTORY MODAL LIGHT MODE TEXT OVERRIDES */
+body.light-mode #weather-modal .settings-body span,
+body.light-mode #weather-modal .settings-body div,
+body.light-mode #history-modal .settings-body span,
+body.light-mode #history-modal .settings-body div {
+    color: #0f172a !important;
+}
+
+body.light-mode #weather-modal .settings-body div[style*="border-bottom"],
+body.light-mode #history-modal .settings-body div[style*="border-bottom"] {
+    border-bottom-color: rgba(0,0,0,0.1) !important;
+}
+
+body.light-mode #history-list div {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(99, 102, 241, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+
+body.light-mode #history-list div span,
+body.light-mode #history-list div div {
+    color: #0f172a !important;
 }
 
