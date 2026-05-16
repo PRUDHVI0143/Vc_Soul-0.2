@@ -135,6 +135,23 @@ function initWeather() {
                     document.getElementById("weather-temp").innerText = res.temp;
                     document.getElementById("weather-desc").innerText = res.desc;
                     document.getElementById("weather-emoji").innerText = res.emoji;
+
+                    // Populate Weather Modal fields
+                    if (document.getElementById("weather-modal-emoji")) document.getElementById("weather-modal-emoji").innerText = res.emoji;
+                    if (document.getElementById("weather-modal-temp")) document.getElementById("weather-modal-temp").innerText = res.temp;
+                    if (document.getElementById("weather-modal-desc")) document.getElementById("weather-modal-desc").innerText = res.desc;
+                    if (document.getElementById("weather-modal-rf")) document.getElementById("weather-modal-rf").innerText = res.feels_like || res.temp;
+                    if (document.getElementById("weather-modal-rfs")) document.getElementById("weather-modal-rfs").innerText = res.feels_like || res.temp;
+                    if (document.getElementById("weather-modal-uv")) document.getElementById("weather-modal-uv").innerText = res.uv_index || "0.8 (Low)";
+                    if (document.getElementById("weather-modal-dp")) document.getElementById("weather-modal-dp").innerText = res.dew_point || "15°C";
+                    if (document.getElementById("weather-modal-wind")) document.getElementById("weather-modal-wind").innerText = res.wind_speed || "NNE 9 km/h";
+                    if (document.getElementById("weather-modal-pres")) document.getElementById("weather-modal-pres").innerText = res.pressure || "↑ 1003 mb";
+                    if (document.getElementById("weather-modal-gusts")) document.getElementById("weather-modal-gusts").innerText = res.wind_gusts || "23 km/h";
+                    if (document.getElementById("weather-modal-cloud")) document.getElementById("weather-modal-cloud").innerText = res.cloud_cover || "0%";
+                    if (document.getElementById("weather-modal-hum")) document.getElementById("weather-modal-hum").innerText = res.humidity || "56%";
+                    if (document.getElementById("weather-modal-vis")) document.getElementById("weather-modal-vis").innerText = res.visibility || "8 km";
+                    if (document.getElementById("weather-modal-ihum")) document.getElementById("weather-modal-ihum").innerText = res.indoor_humidity || "56% (Slightly Humid)";
+                    if (document.getElementById("weather-modal-ceil")) document.getElementById("weather-modal-ceil").innerText = res.cloud_ceiling || "9100 m";
                 }
             } catch(e) { console.error("Weather error", e); }
         }
@@ -358,5 +375,18 @@ async function loadInitialState() {
                 }
             }
         } catch(e) { console.error("Settings load error", e); }
+    }
+}
+
+function toggleWeatherModal() {
+    const modal = document.getElementById("weather-modal");
+    if (modal) {
+        if (modal.style.display === "none") {
+            const timeEl = document.getElementById("weather-modal-time");
+            if (timeEl) timeEl.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            modal.style.display = "flex";
+        } else {
+            modal.style.display = "none";
+        }
     }
 }

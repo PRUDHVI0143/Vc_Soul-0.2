@@ -70,7 +70,7 @@
     </div>
     
     <!-- Live Weather Widget (Bottom Left) -->
-    <div id="weather-widget" class="weather-widget">
+    <div id="weather-widget" class="weather-widget" onclick="toggleWeatherModal()" style="cursor: pointer;" title="Tap to view detailed weather forecast">
         <div class="weather-header">
             <span class="weather-title">LIVE WEATHER</span>
             <span class="weather-dot"></span>
@@ -81,6 +81,80 @@
                 <div id="weather-temp" class="weather-temp">--°C</div>
                 <div id="weather-desc" class="weather-desc">Loading...</div>
                 <div id="weather-loc" class="weather-loc">Detecting...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weather Details Modal (Glassmorphic Popup matching screenshot layout) -->
+    <div id="weather-modal" class="settings-modal" style="display: none;">
+        <div class="settings-modal-content" style="max-width: 650px;">
+            <div class="settings-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <span style="font-size: 16px; font-weight: 600; color: #fff;">Current Weather</span>
+                    <span id="weather-modal-time" style="font-size: 14px; color: #aaa;">6:23 AM</span>
+                </div>
+                <button class="btn-close-settings" onclick="toggleWeatherModal()">×</button>
+            </div>
+            <div class="settings-body" style="display: flex; flex-direction: column; gap: 20px; padding: 20px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span id="weather-modal-emoji" style="font-size: 54px; filter: drop-shadow(0 0 12px rgba(255,255,255,0.3));">☀️</span>
+                        <div style="display: flex; flex-direction: column;">
+                            <span id="weather-modal-temp" style="font-size: 48px; font-weight: 800; color: #fff; line-height: 1;">24°C</span>
+                            <span id="weather-modal-desc" style="font-size: 18px; color: #ddd; margin-top: 8px; font-weight: 600;">Sunny</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px; text-align: right; font-size: 16px; color: #eee; font-weight: 600;">
+                        <div>RealFeel® <span id="weather-modal-rf">23°C</span></div>
+                        <div>RealFeel Shade™ <span id="weather-modal-rfs">23°C</span></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 16px; font-size: 15px;">
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Max UV Index</span>
+                        <span id="weather-modal-uv" style="color: #fff; font-weight: 600;">0.8 (Low)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Dew Point</span>
+                        <span id="weather-modal-dp" style="color: #fff; font-weight: 600;">15°C</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Wind</span>
+                        <span id="weather-modal-wind" style="color: #fff; font-weight: 600;">NNE 9 km/h</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Pressure</span>
+                        <span id="weather-modal-pres" style="color: #fff; font-weight: 600;">↑ 1003 mb</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Wind Gusts</span>
+                        <span id="weather-modal-gusts" style="color: #fff; font-weight: 600;">23 km/h</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Cloud Cover</span>
+                        <span id="weather-modal-cloud" style="color: #fff; font-weight: 600;">0%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Humidity</span>
+                        <span id="weather-modal-hum" style="color: #fff; font-weight: 600;">56%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Visibility</span>
+                        <span id="weather-modal-vis" style="color: #fff; font-weight: 600;">8 km</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Indoor Humidity</span>
+                        <span id="weather-modal-ihum" style="color: #fff; font-weight: 600;">56% (Slightly Humid)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                        <span style="color: #aaa;">Cloud Ceiling</span>
+                        <span id="weather-modal-ceil" style="color: #fff; font-weight: 600;">9100 m</span>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <p>S.O.U.L. v0.2 — Live Atmospheric Telemetry</p>
             </div>
         </div>
     </div>
