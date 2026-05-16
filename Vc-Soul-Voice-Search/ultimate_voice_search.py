@@ -610,7 +610,7 @@ class SoulAssistant:
                 images = []
             
             try:
-                eel.updateAnswer(answer, images)
+                eel.updateAnswer(answer, images, cmd.capitalize())
                 self._ui_update("wake", f"AI ({mode})", "#00e5ff", "")
             except:
                 pass

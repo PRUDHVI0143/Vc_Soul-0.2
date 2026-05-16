@@ -25,12 +25,14 @@ function updateState(state, statusText, dotColor, mainText) {
 }
 
 eel.expose(updateAnswer);
-function updateAnswer(text, images) {
+function updateAnswer(text, images, question) {
     const orb = document.getElementById("orb-container");
     const mainText = document.getElementById("main-text");
     const aiContainer = document.getElementById("ai-response-container");
     const aiText = document.getElementById("ai-text");
     const aiImages = document.getElementById("ai-images");
+    const aiQuestion = document.getElementById("ai-question-text");
+    const aiQuestionBox = document.getElementById("ai-question-box");
 
     // Hide orb and main text
     orb.style.display = "none";
@@ -39,6 +41,16 @@ function updateAnswer(text, images) {
     // Show AI Display
     aiContainer.style.display = "block";
     aiText.innerText = text;
+    
+    // Show Question if available
+    if (aiQuestion && aiQuestionBox) {
+        if (question) {
+            aiQuestionBox.style.display = "block";
+            aiQuestion.innerText = question;
+        } else {
+            aiQuestionBox.style.display = "none";
+        }
+    }
     
     // Process Images
     aiImages.innerHTML = "";

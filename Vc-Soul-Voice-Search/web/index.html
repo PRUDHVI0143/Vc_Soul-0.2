@@ -40,6 +40,10 @@
                 <h1 id="main-text">How can I help?</h1>
                 <div id="ai-response-container" style="display: none; cursor: pointer;" onclick="dismissAnswer()" title="Tap anywhere to dismiss">
                     <div class="dismiss-hint" style="text-align: right; font-size: 11px; color: var(--cyan); margin-bottom: 8px; font-weight: bold; letter-spacing: 1px;">✖ TAP ANYWHERE TO DISMISS</div>
+                    <div id="ai-question-box" style="background: rgba(0, 229, 255, 0.1); border-left: 4px solid var(--cyan); padding: 12px 18px; margin-bottom: 16px; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; text-shadow: 0 0 8px rgba(0,229,255,0.5); text-align: left; display: none;">
+                        <span style="color: var(--cyan); font-size: 11px; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">QUESTION</span>
+                        <div id="ai-question-text"></div>
+                    </div>
                     <p id="ai-text"></p>
                     <div id="ai-images" class="ai-images-grid"></div>
                 </div>
