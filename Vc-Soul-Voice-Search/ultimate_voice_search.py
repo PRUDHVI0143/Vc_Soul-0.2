@@ -862,7 +862,7 @@ class SoulAssistant:
     def run(self):
         self._start_worker()
         # Start Eel server and open the window
-        eel.start('index.html', size=(800, 720))
+        eel.start('index.html', size=(800, 720), icon_file='web/icon.ico')
 
 # Create global instance
 app = SoulAssistant()
