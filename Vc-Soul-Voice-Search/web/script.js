@@ -83,6 +83,16 @@ function dismissAnswer() {
     }
 }
 
+function refreshAssistant() {
+    console.log("Refreshing assistant state...");
+    resetDisplay();
+    if (window.eel && window.eel.manual_deactivate) {
+        eel.manual_deactivate()();
+    }
+    if (typeof initWeather === 'function') initWeather();
+    alert("S.O.U.L. has been fully refreshed and reset to idle state!");
+}
+
 // User Actions -> Call Python
 function manualActivate() {
     eel.manual_activate()();

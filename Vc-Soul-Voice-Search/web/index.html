@@ -26,7 +26,10 @@
                 <div id="live-time">--:--:--</div>
                 <div id="live-date">-- --, ----</div>
             </div>
-            <button class="btn-chat" onclick="quickAction('hello bro')" title="Personal Chat">🪽</button>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn-refresh" onclick="refreshAssistant()" title="Refresh Assistant" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-size: 18px; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">🔄</button>
+                <button class="btn-chat" onclick="quickAction('hello bro')" title="Personal Chat">🪽</button>
+            </div>
         </header>
 
         <!-- Main Display (Orb + Text) -->
