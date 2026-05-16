@@ -619,7 +619,10 @@ class SoulAssistant:
             self._mic_event.set()
             
             clean_ans = self.clean_for_speech(answer)
-            threading.Thread(target=lambda r=clean_ans: self._speak_and_resume(r), daemon=True).start()
+            def delayed_speak(text):
+                time.sleep(2)
+                self._speak_and_resume(text)
+            threading.Thread(target=lambda r=clean_ans: delayed_speak(r), daemon=True).start()
             return
 
         # YouTube search
