@@ -225,6 +225,19 @@ function updateSetting(key, val) {
     }
 }
 
+function saveCustomWakeWord() {
+    const input = document.getElementById("setting-custom-wake");
+    if (input && input.value.trim()) {
+        const val = input.value.trim().toLowerCase();
+        console.log(`Custom wake word saved: ${val}`);
+        if (window.eel && window.eel.update_setting_py) {
+            eel.update_setting_py('custom_wake_word', val)();
+        }
+        alert(`Wake word updated to '${val}'. S.O.U.L. is now actively listening for it!`);
+        input.value = "";
+    }
+}
+
 function toggleLightDarkMode(mode) {
     if (mode === 'light') {
         document.body.classList.add('light-mode');

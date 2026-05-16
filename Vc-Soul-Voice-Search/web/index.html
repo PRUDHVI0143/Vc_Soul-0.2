@@ -133,6 +133,13 @@
                     </div>
                 </div>
                 <div class="setting-item">
+                    <label>Custom Wake Word</label>
+                    <div style="display: flex; align-items: center; gap: 8px; width: 55%;">
+                        <input type="text" id="setting-custom-wake" placeholder="e.g. hey jarvis, soul, bro" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 229, 255, 0.3); color: var(--cyan); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; outline: none; flex: 1;">
+                        <button onclick="saveCustomWakeWord()" style="background: var(--cyan); color: #000; border: none; padding: 8px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px;">SAVE</button>
+                    </div>
+                </div>
+                <div class="setting-item">
                     <label>System Logs</label>
                     <button class="btn-log" onclick="quickAction('Logs')">📂 Open soul.log</button>
                 </div>

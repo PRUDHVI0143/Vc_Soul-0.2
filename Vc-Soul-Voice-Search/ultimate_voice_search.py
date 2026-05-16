@@ -798,12 +798,19 @@ def manual_command(cmd):
 
 @eel.expose
 def update_setting_py(key, val):
+    global WAKE_WORDS
     if key == "voice":
         app.selected_voice = val
         print(f"DEBUG: Voice switched to {val}")
     elif key == "elevenlabs_key":
         app.elevenlabs_key = val.strip()
         print("DEBUG: ElevenLabs API Key updated")
+    elif key == "custom_wake_word":
+        val = val.strip().lower()
+        if val and val not in WAKE_WORDS:
+            WAKE_WORDS.append(val)
+        print(f"DEBUG: Custom wake word added: '{val}'. Active Wake Words: {WAKE_WORDS}")
+        app._ui_update("idle", f"Wake word updated: '{val}'", "#22c55e", f"Listening for '{val}'")
 
 @eel.expose
 def get_live_weather(lat=None, lon=None):
